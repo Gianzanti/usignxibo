@@ -84,17 +84,17 @@ export interface XiboCMSResponse<T> {
  * @template U Defines the return type of getUsage method
  * @template V Defines the type of the argument for the insert method
  */
-export abstract class XiboComponent<T, C, U, V > {
-  // /** Maximun limit allowed on Mjolnir */
-  // public static readonly limitTotal: number = 100;
+export abstract class XiboComponent<T, C, U, V> {
+    // /** Maximun limit allowed on Mjolnir */
+    // public static readonly limitTotal: number = 100;
 
     protected server: Xibo;
 
     protected endpoint: string;
 
-    public constructor (endpoint: string, server: Xibo) {
-      this.endpoint = endpoint
-      this.server = server
+    public constructor(endpoint: string, server: Xibo) {
+        this.endpoint = endpoint
+        this.server = server
     }
 
     // /**
@@ -115,101 +115,95 @@ export abstract class XiboComponent<T, C, U, V > {
     //   return this.mount(resp.data)
     // }
 
-    public async list (criteria?: C & Criteria): Promise<XiboCMSResponse<T>> {
-    //   const crit = criteria || { length: 10 }
-      // TODO: ensure that the criteria.limit is lower than desired
+    public async list(criteria?: C & Criteria): Promise<XiboCMSResponse<T>> {
+        //   const crit = criteria || { length: 10 }
+        // TODO: ensure that the criteria.limit is lower than desired
 
-      const resp = await this.server.api.get<T[] & XiboErrorResponse, C>(this.endpoint, criteria)
-      if (resp.status !== 200) {
-        if (resp.data.error && resp.data.error.message) {
-          throw new XiboError(resp.data.error.message)
+        const resp = await this.server.api.get<T[] & XiboErrorResponse, C>(this.endpoint, criteria)
+        if (resp.status !== 200) {
+            if (resp.data.error && resp.data.error.message) {
+                throw new XiboError(resp.data.error.message)
+            }
+            throw new XiboError(resp.statusText)
         }
-        throw new XiboError(resp.statusText)
-      }
 
-      const count = parseInt(resp.headers['x-total-count'])
-      const start = (criteria && criteria.start) ? criteria.start : 0
-      const limit = (criteria && criteria.length) ? criteria.length : 10
-      const currentPage = Math.floor(start / limit) + 1
-      const totalPages = Math.floor(count / limit) + 1
-      const isLastPage = totalPages === currentPage
-      const newCriteria = criteria
-      newCriteria.start = criteria?.start + newCriteria?.length
+        const count = parseInt(resp.headers['x-total-count'])
+        const start = (criteria && criteria.start) ? criteria.start : 0
+        const limit = (criteria && criteria.length) ? criteria.length : 10
+        const currentPage = Math.floor(start / limit) + 1
+        const totalPages = Math.floor(count / limit) + 1
+        const isLastPage = totalPages === currentPage
+        const newCriteria = criteria
+        newCriteria.start = criteria?.start + newCriteria?.length
 
-      const ret: XiboCMSResponse<T> = {
-        list: resp.data,
-        start: start,
-        count: count,
-        totalPages,
-        currentPage,
-        isLastPage,
-        nextPage: !isLastPage
-          ? async () => {
-            return this.list(newCriteria)
-          }
-          : undefined
-      }
+        const ret: XiboCMSResponse<T> = {
+            list: resp.data,
+            start: start,
+            count: count,
+            totalPages,
+            currentPage,
+            isLastPage,
+            nextPage: !isLastPage
+                ? async (): Promise<XiboCMSResponse<T>> => {
+                    return this.list(newCriteria)
+                }
+                : undefined
+        }
 
-      console.log('Return:', ret)
-      return ret
+        return ret
     }
 
-    public async insert (content: V): Promise<T> {
-      const resp = await this.server.api.post<T & XiboErrorResponse, V>(this.endpoint, content)
-      if (resp.status !== 201) {
-        if (resp.data.error && resp.data.error.message) {
-          throw new XiboError(resp.data.error.message)
+    public async insert(content: V): Promise<T> {
+        const resp = await this.server.api.post<T & XiboErrorResponse, V>(this.endpoint, content)
+        if (resp.status !== 201) {
+            if (resp.data.error && resp.data.error.message) {
+                throw new XiboError(resp.data.error.message)
+            }
+            throw new XiboError(resp.statusText)
         }
-        throw new XiboError(resp.statusText)
-      }
-      return resp.data
+        return resp.data
     }
 
-    public async update (id: number, content: V): Promise<T> {
-      const url = `${this.endpoint}/${id}`
-      const resp = await this.server.api.put<T & XiboErrorResponse, V>(url, content)
-      if (resp.status !== 201) {
-        if (resp.data.error && resp.data.error.message) {
-          throw new XiboError(resp.data.error.message)
+    public async update(id: number, content: V): Promise<T> {
+        const url = `${this.endpoint}/${id}`
+        const resp = await this.server.api.put<T & XiboErrorResponse, V>(url, content)
+        if (resp.status !== 201) {
+            if (resp.data.error && resp.data.error.message) {
+                throw new XiboError(resp.data.error.message)
+            }
+            throw new XiboError(resp.statusText)
         }
-        throw new XiboError(resp.statusText)
-      }
-      return resp.data
+        return resp.data
     }
 
-  // public async remove (id: number, content?: object): Promise<boolean> {
-  //   let url = ''
-  //   if (content) {
-  //     url = `${this.endpoint}/`
-  //   } else {
-  //     url = `${this.endpoint}/${id}`
-  //   }
-  //   const resp = await this.server.api.delete<XiboErrorResponse>(url)
-  //   if (resp.status !== 204) {
-  //     if (resp.data.error && resp.data.error.message) {
-  //       throw new XiboError(resp.data.error.message)
-  //     }
-  //     throw new XiboError(resp.statusText)
-  //   }
-  //   return true
-  // }
+    public async remove(id: number): Promise<boolean> {
+        const url = `${this.endpoint}/${id}`
+        const resp = await this.server.api.delete<XiboErrorResponse>(url)
+        if (resp.status !== 204) {
+            if (resp.data.error && resp.data.error.message) {
+                throw new XiboError(resp.data.error.message)
+            }
+            throw new XiboError(resp.statusText)
+        }
+        return true
+    }
 
-  // public async getUsage (id: number): Promise<U> {
-  //   const url = `${this.endpoint}/usage?ids=${id}`
-  //   const resp = await this.server.api.get<U & XiboErrorResponse>(url)
-  //   if (resp.status !== 200) {
-  //     if (resp.data.error && resp.data.error.message) {
-  //       throw new XiboError(resp.data.error.message)
-  //     }
-  //     throw new XiboError(resp.statusText)
-  //   }
-  //   return resp.data
-  // }
+    // public async getUsage (id: number): Promise<U> {
+    //   const url = `${this.endpoint}/usage?ids=${id}`
+    //   const resp = await this.server.api.get<U & XiboErrorResponse>(url)
+    //   if (resp.status !== 200) {
+    //     if (resp.data.error && resp.data.error.message) {
+    //       throw new XiboError(resp.data.error.message)
+    //     }
+    //     throw new XiboError(resp.statusText)
+    //   }
+    //   return resp.data
+    // }
 
-  // eslint-disable-next-line class-methods-use-this
-  // public mount (scalaComp: T): T {
-  //   return scalaComp
-  // }
+    // eslint-disable-next-line class-methods-use-this
+    // public mount (scalaComp: T): T {
+    //   return scalaComp
+    // }
 }
 
 /* Sorting process

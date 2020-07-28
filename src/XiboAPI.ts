@@ -18,9 +18,9 @@ export class XiboAPI {
      * current axios call
      * */
     private headerToken = {
-      common: {
-        Authorization: ''
-      }
+        common: {
+            Authorization: ''
+        }
     };
 
     /**
@@ -28,52 +28,52 @@ export class XiboAPI {
      *
      * @param baseURL Defines the baseURL that we'll connect to
      */
-    public constructor (baseURL: string) {
-      this.ax = axios.create({
-        baseURL,
-        timeout: 10000,
-        headers: {
-          common: {
-            'Content-Type': 'application/json',
-            Accept: 'application/json'
-          },
-          post: {
-            'Content-Type': 'multipart/form-data'
-          },
-          put: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        },
-        validateStatus: (status) => {
-          return status < 500
-        }
-      })
+    public constructor(baseURL: string) {
+        this.ax = axios.create({
+            baseURL,
+            timeout: 10000,
+            headers: {
+                common: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json'
+                },
+                post: {
+                    'Content-Type': 'multipart/form-data'
+                },
+                put: {
+                    'Content-Type': 'application/x-www-form-urlencoded'
+                }
+            },
+            validateStatus: (status) => {
+                return status < 500
+            }
+        })
 
-      // this.ax.interceptors.response.use(res => {
-      //     // eslint-disable-next-line no-console
-      //     console.log(res.request._header)
-      //     // eslint-disable-next-line no-console
-      //     // console.log(res);
-      //     return res;
-      // }, error => Promise.reject(error) );
+        // this.ax.interceptors.response.use(res => {
+        //     // eslint-disable-next-line no-console
+        //     console.log(res.request._header)
+        //     // eslint-disable-next-line no-console
+        //     // console.log(res);
+        //     return res;
+        // }, error => Promise.reject(error) );
 
-    //   this.ax.interceptors.request.use(config => {
-    //     // eslint-disable-next-line no-console
-    //     console.log('Request:', config)
-    //     return config
-    //   }, error => Promise.reject(error))
+        //   this.ax.interceptors.request.use(config => {
+        //     // eslint-disable-next-line no-console
+        //     console.log('Request:', config)
+        //     return config
+        //   }, error => Promise.reject(error))
     }
 
-    public setToken (token: string) {
-      this.headerToken.common.Authorization = `Bearer ${token}`
+    public setToken(token: string): void {
+        this.headerToken.common.Authorization = `Bearer ${token}`
     }
 
-    public getToken (): string {
-      return this.headerToken.common.Authorization
+    public getToken(): string {
+        return this.headerToken.common.Authorization
     }
 
-    public removeToken () {
-      this.headerToken.common.Authorization = ''
+    public removeToken(): void {
+        this.headerToken.common.Authorization = ''
     }
 
     /**
@@ -84,16 +84,16 @@ export class XiboAPI {
      * @param url the endpoint to point the get action
      * @param criteria optional criteria to get items
      */
-    public get<R, C> (url: string, criteria?: C): AxiosPromise<R> {
-      // public get<R> (url: string, criteria?: Criteria): AxiosPromise<R> {
-      return this.ax({
-        headers: {
-          ...this.headerToken
-        },
-        method: 'GET',
-        url,
-        params: criteria || undefined
-      })
+    public get<R, C>(url: string, criteria?: C): AxiosPromise<R> {
+        // public get<R> (url: string, criteria?: Criteria): AxiosPromise<R> {
+        return this.ax({
+            headers: {
+                ...this.headerToken
+            },
+            method: 'GET',
+            url,
+            params: criteria || undefined
+        })
     }
 
     /**
@@ -105,27 +105,27 @@ export class XiboAPI {
      * @param url the endpoint to point the POST action
      * @param data optional information to send in the POST
      */
-    public post<R, P> (url: string, data?: P): AxiosPromise<R> {
-      const formData = new FormData()
-      if (data) {
-        Object.getOwnPropertyNames(data).forEach(key => {
-          if (Array.isArray(data[key])) {
-            formData.append(key, data[key].toString())
-          } else {
-            formData.append(key, data[key])
-          }
-        })
-      }
+    public post<R, P>(url: string, data?: P): AxiosPromise<R> {
+        const formData = new FormData()
+        if (data) {
+            Object.getOwnPropertyNames(data).forEach(key => {
+                if (Array.isArray(data[key])) {
+                    formData.append(key, data[key].toString())
+                } else {
+                    formData.append(key, data[key])
+                }
+            })
+        }
 
-      return this.ax({
-        headers: {
-          ...this.headerToken,
-          ...formData.getHeaders()
-        },
-        method: 'POST',
-        url,
-        data: formData || undefined
-      })
+        return this.ax({
+            headers: {
+                ...this.headerToken,
+                ...formData.getHeaders()
+            },
+            method: 'POST',
+            url,
+            data: formData || undefined
+        })
     }
 
     /**
@@ -137,50 +137,48 @@ export class XiboAPI {
    * @param url the endpoint to point the PUT action
    * @param data optional information to send in the PUT
    */
-    public put<R, P> (url: string, data: P): AxiosPromise<R> {
-      return this.ax({
-        headers: this.headerToken,
-        method: 'PUT',
-        url,
-        data: qs.stringify(data) || undefined
-      })
+    public put<R, P>(url: string, data: P): AxiosPromise<R> {
+        return this.ax({
+            headers: this.headerToken,
+            method: 'PUT',
+            url,
+            data: qs.stringify(data) || undefined
+        })
     }
 
-  // /**
-  //  * Performs a PUT action in the provided url. This method is
-  //  * used only to perform upload of files to a server using
-  //  * REST API
-  //  * @template R Defines the return type
-  //  * @param url the endpoint to point the PUT action
-  //  * @param newHeader define the additional information to put it
-  //  * the request header to performe the desired action
-  //  * @param data the file chunck to upload
-  //  */
-  // public putFile<R> (url: string, newHeader: ScalaUploadHeader, data: Buffer): AxiosPromise<R> {
-  //   return this.ax({
-  //     headers: { ...this.headerToken, ...newHeader },
-  //     method: 'PUT',
-  //     url,
-  //     data,
-  //     timeout: 0,
-  //     maxContentLength: Infinity
-  //   })
-  // }
+    // /**
+    //  * Performs a PUT action in the provided url. This method is
+    //  * used only to perform upload of files to a server using
+    //  * REST API
+    //  * @template R Defines the return type
+    //  * @param url the endpoint to point the PUT action
+    //  * @param newHeader define the additional information to put it
+    //  * the request header to performe the desired action
+    //  * @param data the file chunck to upload
+    //  */
+    // public putFile<R> (url: string, newHeader: ScalaUploadHeader, data: Buffer): AxiosPromise<R> {
+    //   return this.ax({
+    //     headers: { ...this.headerToken, ...newHeader },
+    //     method: 'PUT',
+    //     url,
+    //     data,
+    //     timeout: 0,
+    //     maxContentLength: Infinity
+    //   })
+    // }
 
-  // /**
-  //  * Performs a DELETE action in the provided url
-  //  * @template R Defines the return type
-  //  * @param url the endpoint to point the PUT action
-  //  */
-  // public delete<R> (url: string): AxiosPromise<R> {
-  //   // delete<R>(path: string, params?: object): AxiosPromise<R> {
-  //   return this.ax({
-  //     headers: this.headerToken,
-  //     method: 'DELETE',
-  //     url
-  //     // data: params || undefined,
-  //   })
-  // }
+    /**
+   * Performs a DELETE action in the provided url
+   * @template R Defines the return type
+   * @param url the endpoint to point the PUT action
+   */
+    public delete<R>(url: string): AxiosPromise<R> {
+        return this.ax({
+            headers: this.headerToken,
+            method: 'DELETE',
+            url
+        })
+    }
 }
 
 export default XiboAPI
