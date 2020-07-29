@@ -133,8 +133,12 @@ export abstract class XiboComponent<T, C, U, V> {
         const currentPage = Math.floor(start / limit) + 1
         const totalPages = Math.floor(count / limit) + 1
         const isLastPage = totalPages === currentPage
-        const newCriteria = criteria
-        newCriteria.start = criteria?.start + newCriteria?.length
+        let newCriteria: C & Criteria
+        if (criteria) {
+            newCriteria = criteria
+            newCriteria.start = criteria.start || 0
+            newCriteria.start = newCriteria.start + (newCriteria.length ? newCriteria.length : 10)
+        }
 
         const ret: XiboCMSResponse<T> = {
             list: resp.data,

@@ -15,31 +15,63 @@ const main = async (): Promise<void> => {
 
     try {
         await xibo.authenticate()
-        await xibo.about()
-        await xibo.clock()
-        await xibo.tags.list({ tagId: 4 })
+        // await xibo.about()
+        // await xibo.clock()
 
-        const tagToInsert: TagInsert = {
-            name: 'TagInsertedByAPI2',
-            isRequired: 1
-            //   options: ['some', 'options', 'comma', 'separated']
-            // TODO: need to fix dealing with arrays
-        }
-        const inserted = await xibo.tags.insert(tagToInsert)
-        console.log('Inserted:', inserted)
-        // console.log('ID of new tag:', inserted.tagId)
+        // await xibo.tags.list({ tagId: 4 })
+        // const tagToInsert: TagInsert = {
+        //     name: 'TagInsertedByAPI2',
+        //     isRequired: 1
+        //     //   options: ['some', 'options', 'comma', 'separated']
+        //     // TODO: need to fix dealing with arrays
+        // }
+        // const inserted = await xibo.tags.insert(tagToInsert)
+        // console.log('Inserted:', inserted)
+        // // console.log('ID of new tag:', inserted.tagId)
 
-        const newTag = {
-            ...inserted,
-            name: 'ChangedByAPIfromVSCode2'
-        }
+        // const newTag = {
+        //     ...inserted,
+        //     name: 'ChangedByAPIfromVSCode2'
+        // }
 
-        const toUpdate = await xibo.tags.update(newTag.tagId, newTag)
-        console.log('Updated:', toUpdate)
-        console.log('ID of new tag:', toUpdate.tagId)
+        // const toUpdate = await xibo.tags.update(newTag.tagId, newTag)
+        // console.log('Updated:', toUpdate)
+        // console.log('ID of new tag:', toUpdate.tagId)
 
-        const deleted = await xibo.tags.remove(toUpdate.tagId)
-        console.log('Deleted:', deleted)
+        // const deleted = await xibo.tags.remove(toUpdate.tagId)
+        // console.log('Deleted:', deleted)
+
+
+        const dgList = await xibo.displaygroups.list({displayGroup: 'jbtec'})
+        // console.log('DisplayGroups:', dgList)
+
+        const dgId = dgList.list[0].displayGroupId
+        console.log('DisplayGroupID:', dgId)
+
+        const ds = await xibo.displays.list({displayGroupId: dgId})
+        console.log('Displays:', ds)
+
+        // const tagToInsert: TagInsert = {
+        //     name: 'TagInsertedByAPI2',
+        //     isRequired: 1
+        //     //   options: ['some', 'options', 'comma', 'separated']
+        //     // TODO: need to fix dealing with arrays
+        // }
+        // const inserted = await xibo.displaygroups.insert(tagToInsert)
+        // console.log('Inserted:', inserted)
+        // // console.log('ID of new tag:', inserted.tagId)
+
+        // const newTag = {
+        //     ...inserted,
+        //     name: 'ChangedByAPIfromVSCode2'
+        // }
+
+        // const toUpdate = await xibo.displaygroups.update(newTag.tagId, newTag)
+        // console.log('Updated:', toUpdate)
+        // console.log('ID of new tag:', toUpdate.tagId)
+
+        // const deleted = await xibo.displaygroups.remove(toUpdate.tagId)
+        // console.log('Deleted:', deleted)
     } catch (e) {
         console.log(e)
     }

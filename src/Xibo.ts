@@ -1,6 +1,8 @@
 import { XiboAPI, XiboErrorResponse } from './XiboAPI'
 import { XiboError } from './XiboError'
 import { Tags } from './XiboTags'
+import { DisplayGroups } from './XiboDisplayGroups'
+import { Displays } from './XiboDisplays'
 
 interface XiboCredentials {
     client_id: string;
@@ -31,11 +33,15 @@ export class Xibo {
     public api: XiboAPI;
     private credentials: XiboCredentials;
     public tags: Tags;
+    public displaygroups: DisplayGroups
+    public displays: Displays
 
     public constructor({ url, ...credentials }: XiboDTO) {
         this.api = new XiboAPI(url)
         this.credentials = credentials
         this.tags = new Tags(this)
+        this.displaygroups = new DisplayGroups(this)
+        this.displays = new Displays(this)
     }
 
     public async authenticate(): Promise<void> {
