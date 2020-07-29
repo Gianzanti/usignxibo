@@ -1,6 +1,5 @@
 import { Xibo } from './Xibo'
 import { XiboError } from './XiboError'
-// import { XiboErrorResponse, ScalaUpdateResponse } from './ScalaAPI'
 import { XiboErrorResponse } from './XiboAPI'
 /**
  * Interface used to define a criteria for filtering/searching/getting
@@ -68,13 +67,6 @@ export interface XiboCMSResponse<T> {
     nextPage?: () => Promise<XiboCMSResponse<T>>;
 }
 
-// const getParams = (keyword: string, url:string) => {
-//   const key = keyword.replace(/[[]/, '\\[').replace(/[\]]/, '\\]')
-//   const regex = new RegExp(key + '=([^&#]*)')
-//   const results = regex.exec(url)
-//   return results === null ? '' : decodeURIComponent(results[1].replace(/\+/g, ' '))
-// }
-
 /**
  * An abstract class to share methods and properties between
  * all the Scala components available.
@@ -97,29 +89,11 @@ export abstract class XiboComponent<T, C, U, V> {
         this.server = server
     }
 
-    // /**
-    //  * Gets all the information about the component of type T
-    //  * @param id index of componet desired to get information
-    //  * @template T Defines the return type of the get, list, insert and update methods
-    //  * @return {T} A generic component of type {T}
-    //  */
-    // public async get (id: number): Promise<T> {
-    //   const url = `${this.endpoint}/${id}`
-    //   const resp = await this.server.api.get<T & XiboErrorResponse>(url)
-    //   if (resp.status !== 200) {
-    //     if (resp.data.error && resp.data.error.message) {
-    //       throw new XiboError(resp.data.error.message)
-    //     }
-    //     throw new XiboError(resp.statusText)
-    //   }
-    //   return this.mount(resp.data)
-    // }
-
-    public async list(criteria?: C & Criteria): Promise<XiboCMSResponse<T>> {
+    public async list(criteria?: C & Criteria, url?: string): Promise<XiboCMSResponse<T>> {
         //   const crit = criteria || { length: 10 }
         // TODO: ensure that the criteria.limit is lower than desired
-
-        const resp = await this.server.api.get<T[] & XiboErrorResponse, C>(this.endpoint, criteria)
+        const ep = url || this.endpoint
+        const resp = await this.server.api.get<T[] & XiboErrorResponse, C>(ep, criteria)
         if (resp.status !== 200) {
             if (resp.data.error && resp.data.error.message) {
                 throw new XiboError(resp.data.error.message)
@@ -191,23 +165,6 @@ export abstract class XiboComponent<T, C, U, V> {
         }
         return true
     }
-
-    // public async getUsage (id: number): Promise<U> {
-    //   const url = `${this.endpoint}/usage?ids=${id}`
-    //   const resp = await this.server.api.get<U & XiboErrorResponse>(url)
-    //   if (resp.status !== 200) {
-    //     if (resp.data.error && resp.data.error.message) {
-    //       throw new XiboError(resp.data.error.message)
-    //     }
-    //     throw new XiboError(resp.statusText)
-    //   }
-    //   return resp.data
-    // }
-
-    // eslint-disable-next-line class-methods-use-this
-    // public mount (scalaComp: T): T {
-    //   return scalaComp
-    // }
 }
 
 /* Sorting process

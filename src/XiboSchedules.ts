@@ -1,40 +1,52 @@
 import { Xibo } from './Xibo'
-import { XiboComponent, Criteria } from './XiboComponent'
+import { XiboComponent, Criteria, XiboCMSResponse } from './XiboComponent'
+import { XiboErrorResponse } from './XiboAPI'
+import { XiboError } from './XiboError'
+// export interface ScheduleInsert {
 
-export interface ScheduleInsert {
-    displayGroup?: string;
-    description?: string;
-    tags?: string;
-    isDynamic: number;
-    dynamicCriteria: string;
-}
+// }
 
 export interface Schedule {
-    displayGroupId: number;
-    displayGroup: string;
-    description: string;
-    isDisplaySpecific: number;
-    isDynamic: number;
-    dynamicCriteria: string;
-    dynamicCriteriaTags: string;
+    eventId: number;
+    eventTypeId: number;
+    campaignId: number;
+    commandId: number;
+    displayGroups: string;
+    scheduleReminders: string;
     userId: number;
-    tags: string;
-    tagValues: string;
-    bandwidthLimit: string;
+    fromDt: number;
+    toDt: number;
+    isPriority: number;
+    displayOrder: number;
+    recurrenceType: string; //enum: [None,Minute,Hour,Day,Week,Month,Year]
+    recurrenceDetail: number;
+    recurrenceRange: number;
+    recurrenceRepeatsOn: string;
+    recurrenceMonthlyRepeatsOn: number;
+    campaign: string;
+    command: string;
+    dayPartId: number;
+    isAlways: number;
+    isCustom: number;
+    syncEvent: number;
+    syncTimezone: number;
+    shareOfVoice: number;
+    isGeoAware: number;
+    geoLocation: string;
 }
 
 interface ScheduleCriteria extends Criteria {
-    displayGroupId?: number;
-    displayGroup?: string;
-    displayId?: number;
-    nestedDisplayId?: number;
-    dynamicCriteria?: string;
-    isDisplaySpecific?: number;
-    forSchedule?: number;
+    displayGroupId: number;
+    date: string; //Date in Y-m-d H:i:s
 }
 
-export class Schedules extends XiboComponent<Schedule, ScheduleCriteria, null, ScheduleInsert> {
+export class Schedules extends XiboComponent<Schedule, ScheduleCriteria, null, null> {
     public constructor(server: Xibo) {
-        super('/displaygroup', server)
+        super('/schedule', server)
     }
+
+    public async listEvents(criteria: ScheduleCriteria): Promise<XiboCMSResponse<Schedule>> {
+        return super.list(criteria, `${this.endpoint}/${criteria.displayGroupId}/events`)
+    }
+
 }

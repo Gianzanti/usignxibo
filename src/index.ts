@@ -46,10 +46,17 @@ const main = async (): Promise<void> => {
         // console.log('DisplayGroups:', dgList)
 
         const dgId = dgList.list[0].displayGroupId
-        console.log('DisplayGroupID:', dgId)
+        // console.log('DisplayGroupID:', dgId)
 
-        const ds = await xibo.displays.list({displayGroupId: dgId})
-        console.log('Displays:', ds)
+        // const ds = await xibo.displays.list({displayGroupId: dgId})
+        // console.log('Displays:', ds)
+
+        // const sch = await xibo.schedules.getEvents({displayGroupId: dgId, date: '2020-07-29 00:00:00'})
+        // console.log('Schedule:', sch.list)
+
+        const sch = await xibo.schedules.listEvents({displayGroupId: dgId, date: '2020-07-29 00:00:00'})
+        console.log('Schedule:', sch.list)
+
 
         // const tagToInsert: TagInsert = {
         //     name: 'TagInsertedByAPI2',
