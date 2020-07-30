@@ -1,11 +1,18 @@
 import { Xibo } from './Xibo'
-import { TagInsert } from './XiboTags'
+// import { TagInsert } from './XiboTags'
 
-const xiboURL = 'https://wide.ds-cloud.io/api'
+const proxy = 'https://corsproxy.usign.io/'
+let xiboURL = 'https://wide.ds-cloud.io/api'
+if (typeof window !== 'undefined') {
+    xiboURL = `${proxy}${xiboURL}`
+    console.log('On browser...')
+}
+
+// const xiboURL = 'https://wide.ds-cloud.io/api'
 const xiboID = 'ZadAUKOUuUOuozo1XEPrYW1vZz5hBwgO0ElzWxpa'
 const xiboSecret = 'qBSTVHctGzkBmb88DMYmDGrpLinvbGyqcOj0KTN8bmv7zlmcgXPXdS9fF6chxy3wqUHcyKOHwa2IT0gYG4982uNXGeNDoBrAxmqhGvGNtRfhyslfbeyqo4V9BBibcaniVbuc5FzKgBK3vtrqWiIx3ZKOb86TYGcA8wo2seb3iyDMygWGuucvXdgHbtwDWmiM8JsPEfIi9IBiAltI8yivsASORucQuLFudoUpIsXRbAa5Bel9F3j6KK2OpUCObQ'
 
-const main = async (): Promise<void> => {
+const run = async (): Promise<void> => {
     const xibo = new Xibo({
         url: xiboURL,
         'client_id': xiboID,
@@ -15,8 +22,8 @@ const main = async (): Promise<void> => {
 
     try {
         await xibo.authenticate()
-        // await xibo.about()
-        // await xibo.clock()
+        const versao = await xibo.about()
+        console.log('Xibo Version:', versao.version)
 
         // await xibo.tags.list({ tagId: 4 })
         // const tagToInsert: TagInsert = {
@@ -84,4 +91,4 @@ const main = async (): Promise<void> => {
     }
 }
 
-main()
+run()

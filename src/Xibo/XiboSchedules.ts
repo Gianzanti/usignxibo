@@ -1,7 +1,6 @@
 import { Xibo } from './Xibo'
 import { XiboComponent, Criteria, XiboCMSResponse } from './XiboComponent'
-import { XiboErrorResponse } from './XiboAPI'
-import { XiboError } from './XiboError'
+
 // export interface ScheduleInsert {
 
 // }

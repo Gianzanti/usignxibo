@@ -1,5 +1,5 @@
 import axios, { AxiosInstance, AxiosPromise } from 'axios'
-import FormData from 'form-data'
+// import FormData from 'form-data'
 import qs from 'qs'
 
 export interface XiboErrorResponse {
@@ -34,15 +34,19 @@ export class XiboAPI {
             timeout: 10000,
             headers: {
                 common: {
-                    'Content-Type': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
                     Accept: 'application/json'
                 },
-                post: {
-                    'Content-Type': 'multipart/form-data'
-                },
-                put: {
-                    'Content-Type': 'application/x-www-form-urlencoded'
-                }
+                // get: {
+                //     'Content-Type': 'multipart/form-data'
+                // },
+
+                // post: {
+                //     'Content-Type': 'multipart/form-data'
+                // },
+                // put: {
+                //     'Content-Type': 'application/x-www-form-urlencoded'
+                // }
             },
             validateStatus: (status) => {
                 return status < 500
@@ -85,7 +89,6 @@ export class XiboAPI {
      * @param criteria optional criteria to get items
      */
     public get<R, C>(url: string, criteria?: C): AxiosPromise<R> {
-        // public get<R> (url: string, criteria?: Criteria): AxiosPromise<R> {
         return this.ax({
             headers: {
                 ...this.headerToken
@@ -106,25 +109,26 @@ export class XiboAPI {
      * @param data optional information to send in the POST
      */
     public post<R, P>(url: string, data?: P): AxiosPromise<R> {
-        const formData = new FormData()
-        if (data) {
-            Object.getOwnPropertyNames(data).forEach(key => {
-                if (Array.isArray(data[key])) {
-                    formData.append(key, data[key].toString())
-                } else {
-                    formData.append(key, data[key])
-                }
-            })
-        }
+        // const formData = new FormData()
+        // if (data) {
+        //     Object.getOwnPropertyNames(data).forEach(key => {
+        //         if (Array.isArray(data[key])) {
+        //             formData.append(key, data[key].toString())
+        //         } else {
+        //             formData.append(key, data[key])
+        //         }
+        //     })
+        // }
 
         return this.ax({
             headers: {
                 ...this.headerToken,
-                ...formData.getHeaders()
+                // ...formData.getHeaders()
             },
             method: 'POST',
             url,
-            data: formData || undefined
+            // data: formData || undefined
+            data: qs.stringify(data) || undefined
         })
     }
 
