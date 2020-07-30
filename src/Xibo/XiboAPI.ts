@@ -2,11 +2,16 @@ import axios, { AxiosInstance, AxiosPromise } from 'axios'
 // import FormData from 'form-data'
 import qs from 'qs'
 
+
+interface XiboErrorData {
+    [property: string]: string ;
+}
+
 export interface XiboErrorResponse {
     error: {
         message: string;
         code: number;
-        data: string[];
+        data: XiboErrorData;
     };
 }
 
@@ -85,17 +90,20 @@ export class XiboAPI {
      * params as Criteria. The expected response will be of
      * the type provided as R
      * @template R Defines the return type
+     * @template C Defines the search criteria type
      * @param url the endpoint to point the get action
      * @param criteria optional criteria to get items
      */
-    public get<R, C>(url: string, criteria?: C): AxiosPromise<R> {
+    public get<R, C = null>(url: string, criteria?: C): AxiosPromise<R> {
+        const envelope = {
+            ...criteria,
+            envelope: 1
+        }
         return this.ax({
-            headers: {
-                ...this.headerToken
-            },
+            headers: this.headerToken,
             method: 'GET',
             url,
-            params: criteria || undefined
+            params: envelope
         })
     }
 
@@ -108,26 +116,33 @@ export class XiboAPI {
      * @param url the endpoint to point the POST action
      * @param data optional information to send in the POST
      */
-    public post<R, P>(url: string, data?: P): AxiosPromise<R> {
-        // const formData = new FormData()
-        // if (data) {
-        //     Object.getOwnPropertyNames(data).forEach(key => {
-        //         if (Array.isArray(data[key])) {
-        //             formData.append(key, data[key].toString())
-        //         } else {
-        //             formData.append(key, data[key])
-        //         }
-        //     })
-        // }
-
+    public post<R, P = null>(url: string, data?: P): AxiosPromise<R> {
+        const envelope = {
+            envelope: 1
+        }
         return this.ax({
-            headers: {
-                ...this.headerToken,
-                // ...formData.getHeaders()
-            },
+            headers: this.headerToken,
             method: 'POST',
             url,
-            // data: formData || undefined
+            params: envelope,
+            data: qs.stringify(data, { arrayFormat: 'comma' }) || undefined
+        })
+    }
+
+    /**
+     * Performs a POST action in the provided url with the
+     * data of type P. The expected response will be of
+     * the type provided as R
+     * @template R Defines the return type
+     * @template P Defines the type of the information sent
+     * @param url the endpoint to point the POST action
+     * @param data optional information to send in the POST
+     */
+    public cleanPost<R, P = null>(url: string, data?: P): AxiosPromise<R & XiboErrorResponse> {
+        return this.ax({
+            headers: this.headerToken,
+            method: 'POST',
+            url,
             data: qs.stringify(data) || undefined
         })
     }
@@ -142,11 +157,15 @@ export class XiboAPI {
    * @param data optional information to send in the PUT
    */
     public put<R, P>(url: string, data: P): AxiosPromise<R> {
+        const envelope = {
+            envelope: 1
+        }
         return this.ax({
             headers: this.headerToken,
             method: 'PUT',
             url,
-            data: qs.stringify(data) || undefined
+            params: envelope,
+            data: qs.stringify(data, { arrayFormat: 'comma' }) || undefined
         })
     }
 
@@ -180,7 +199,8 @@ export class XiboAPI {
         return this.ax({
             headers: this.headerToken,
             method: 'DELETE',
-            url
+            url,
+            params: {envelope:1},
         })
     }
 }

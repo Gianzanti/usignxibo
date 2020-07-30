@@ -33,7 +33,7 @@ interface DisplayGroupCriteria extends Criteria {
     forSchedule?: number;
 }
 
-export class DisplayGroups extends XiboComponent<DisplayGroup, DisplayGroupCriteria, null, DisplayGroupInsert> {
+export class DisplayGroups extends XiboComponent<DisplayGroup, DisplayGroupCriteria, DisplayGroupInsert> {
     public constructor(server: Xibo) {
         super('/displaygroup', server)
     }

@@ -1,11 +1,13 @@
 import { Xibo } from './Xibo'
-import { XiboComponent, Criteria, XiboCMSResponse } from './XiboComponent'
+import { XiboComponent, Criteria, XiboResponse, XiboComponentDTO } from './XiboComponent'
+import { Campaign } from './XiboCampaing'
+import { DisplayGroup } from './XiboDisplayGroups'
+import { Layout } from './XiboLayout'
 
 // export interface ScheduleInsert {
 
 // }
-
-export interface Schedule {
+export interface Event {
     eventId: number;
     eventTypeId: number;
     campaignId: number;
@@ -34,17 +36,28 @@ export interface Schedule {
     geoLocation: string;
 }
 
+export interface Schedule {
+    campaigns: Campaign[];
+    displaygroups: DisplayGroup[];
+    events: Event[];
+    layouts: Layout[];
+}
+
 interface ScheduleCriteria extends Criteria {
     displayGroupId: number;
     date: string; //Date in Y-m-d H:i:s
 }
 
-export class Schedules extends XiboComponent<Schedule, ScheduleCriteria, null, null> {
+export class Schedules extends XiboComponent<Schedule, ScheduleCriteria, null> {
     public constructor(server: Xibo) {
-        super('/schedule', server)
+        super({
+            endPoint: '/schedule',
+            server: server,
+            gridExpected: false
+        })
     }
 
-    public async listEvents(criteria: ScheduleCriteria): Promise<XiboCMSResponse<Schedule>> {
+    public async listEvents(criteria: ScheduleCriteria): Promise<XiboResponse<Schedule>> {
         return super.list(criteria, `${this.endpoint}/${criteria.displayGroupId}/events`)
     }
 

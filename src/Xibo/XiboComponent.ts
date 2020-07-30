@@ -1,6 +1,5 @@
 import { Xibo } from './Xibo'
 import { XiboError } from './XiboError'
-import { XiboErrorResponse } from './XiboAPI'
 /**
  * Interface used to define a criteria for filtering/searching/getting
  * a list of Scala components
@@ -11,38 +10,25 @@ export interface Criteria {
 
     /** The first index to perform the search. Use for pagination */
     start?: number;
-
-    // /** Comma separated list of fields to sort by. Use - sign (minus sign)
-    //  * to identify the column should be sort by descending order.
-    //  */
-    // sort?: string;
-
-    // listOnly?: boolean;
-
-    // /** A comma separated list of fields you want to include on the response object.
-    //  * Note: The field ID always be included as part of the response object
-    //  */
-    // fields?: string;
-
-    // /** One or more filters to be applied with the following comparators:
-    //  * eq (=), ne (!=), ge (>=), le (<=), gt (>), lt (<), in, like
-    //  * @sample `{name : {values:['test%', '%xmas%'], comparator : 'like'}}`
-    //  */
-    // filters?: object;
-
-    // /** A string that the user wants to search for.
-    //  * The system will search for media items with names or descriptions
-    //  * containing that string.
-    //  */
-    // search?: string;
 }
 
-/** A personalized response interface for the list methods for Mjolnir API, that
- * extends the ScalaListResponse and adds to it the currentPage, totalPages and
- * isLastPage properties, defined by the current limit and a method (nextPage) to
- * navigate between pages.
- */
-export interface XiboCMSResponse<T> {
+export interface XiboCMSData<T> {
+    draw: number;
+    recordsTotal: number;
+    recordsFiltered: number;
+    data: T[];
+}
+
+export interface XiboCMSResponse<T>{
+    grid: boolean;
+    success: boolean;
+    status: number;
+    message: string;
+    id: number;
+    data: T;
+}
+
+export interface XiboResponse<T> {
     /** List of items of type T */
     list: T[];
 
@@ -64,19 +50,32 @@ export interface XiboCMSResponse<T> {
     isLastPage: boolean;
 
     /** A method to navigate between pages of the resultset */
-    nextPage?: () => Promise<XiboCMSResponse<T>>;
+    nextPage?: () => Promise<XiboResponse<T>>;
 }
+
+
+interface XiboCredentials {
+    client_id: string;
+    client_secret: string;
+    grant_type: string;
+}
+
+export interface XiboComponentDTO {
+    endPoint: string;
+    server: Xibo;
+    gridExpected: boolean;
+}
+
 
 /**
  * An abstract class to share methods and properties between
- * all the Scala components available.
+ * all the Xibo components available.
  * To instantiate it is necessary to supply 3 types:
  * @template T Defines the return type of the get, list, insert and update methods
  * @template C Defines the criterias to search component
- * @template U Defines the return type of getUsage method
  * @template V Defines the type of the argument for the insert method
  */
-export abstract class XiboComponent<T, C, U, V> {
+export abstract class XiboComponent<T, C, V> {
     // /** Maximun limit allowed on Mjolnir */
     // public static readonly limitTotal: number = 100;
 
@@ -84,28 +83,33 @@ export abstract class XiboComponent<T, C, U, V> {
 
     protected endpoint: string;
 
-    public constructor(endpoint: string, server: Xibo) {
-        this.endpoint = endpoint
+    protected gridExpected: boolean;
+
+    public constructor({endPoint, server, gridExpected}: XiboComponentDTO) {
+        this.endpoint = endPoint
         this.server = server
+        this.gridExpected = gridExpected
     }
 
-    public async list(criteria?: C & Criteria, url?: string): Promise<XiboCMSResponse<T>> {
+    public async list(criteria?: C & Criteria, url?: string): Promise<XiboResponse<T>> {
         //   const crit = criteria || { length: 10 }
         // TODO: ensure that the criteria.limit is lower than desired
         const ep = url || this.endpoint
-        const resp = await this.server.api.get<T[] & XiboErrorResponse, C>(ep, criteria)
-        if (resp.status !== 200) {
-            if (resp.data.error && resp.data.error.message) {
-                throw new XiboError(resp.data.error.message)
+        const resp = await this.server.api.get<XiboCMSResponse<XiboCMSData<T>>, C & Criteria>(ep, criteria)
+        if (!resp.data.success) {
+            if (resp.data.message) {
+                throw new XiboError(resp.data.message)
             }
             throw new XiboError(resp.statusText)
         }
 
-        const count = parseInt(resp.headers['x-total-count'])
+        const totalRecords = resp.data.data.recordsFiltered
+        const currentRecords = resp.data.data.data.length
         const start = (criteria && criteria.start) ? criteria.start : 0
         const limit = (criteria && criteria.length) ? criteria.length : 10
-        const currentPage = Math.floor(start / limit) + 1
-        const totalPages = Math.floor(count / limit) + 1
+
+        const currentPage = Math.ceil((start + currentRecords) / limit)
+        const totalPages = Math.floor(totalRecords / limit) + 1
         const isLastPage = totalPages === currentPage
         let newCriteria: C & Criteria
         if (criteria) {
@@ -114,55 +118,57 @@ export abstract class XiboComponent<T, C, U, V> {
             newCriteria.start = newCriteria.start + (newCriteria.length ? newCriteria.length : 10)
         }
 
-        const ret: XiboCMSResponse<T> = {
-            list: resp.data,
+        const ret: XiboResponse<T> = {
+            list: resp.data.data.data,
             start: start,
-            count: count,
+            count: totalRecords,
             totalPages,
             currentPage,
             isLastPage,
             nextPage: !isLastPage
-                ? async (): Promise<XiboCMSResponse<T>> => {
+                ? async (): Promise<XiboResponse<T>> => {
                     return this.list(newCriteria)
                 }
                 : undefined
         }
-
         return ret
     }
 
     public async insert(content: V): Promise<T> {
-        const resp = await this.server.api.post<T & XiboErrorResponse, V>(this.endpoint, content)
-        if (resp.status !== 201) {
-            if (resp.data.error && resp.data.error.message) {
-                throw new XiboError(resp.data.error.message)
+        const resp = await this.server.api.post<XiboCMSResponse<T>, V>(this.endpoint, content)
+        if (!resp.data.success) {
+            if (resp.data.message) {
+                throw new XiboError(resp.data.message)
             }
             throw new XiboError(resp.statusText)
         }
-        return resp.data
+        // console.log(resp.data.message)
+        return resp.data.data
     }
 
-    public async update(id: number, content: V): Promise<T> {
+    public async update(id: number, content: T & V): Promise<T> {
         const url = `${this.endpoint}/${id}`
-        const resp = await this.server.api.put<T & XiboErrorResponse, V>(url, content)
-        if (resp.status !== 201) {
-            if (resp.data.error && resp.data.error.message) {
-                throw new XiboError(resp.data.error.message)
+        const resp = await this.server.api.put<XiboCMSResponse<T>, V>(url, content)
+        if (!resp.data.success) {
+            if (resp.data.message) {
+                throw new XiboError(resp.data.message)
             }
             throw new XiboError(resp.statusText)
         }
-        return resp.data
+        // console.log(resp.data.message)
+        return resp.data.data
     }
 
     public async remove(id: number): Promise<boolean> {
         const url = `${this.endpoint}/${id}`
-        const resp = await this.server.api.delete<XiboErrorResponse>(url)
-        if (resp.status !== 204) {
-            if (resp.data.error && resp.data.error.message) {
-                throw new XiboError(resp.data.error.message)
+        const resp = await this.server.api.delete<XiboCMSResponse<T>>(url)
+        if (!resp.data.success) {
+            if (resp.data.message) {
+                throw new XiboError(resp.data.message)
             }
             throw new XiboError(resp.statusText)
         }
+        // console.log(resp.data.message)
         return true
     }
 }

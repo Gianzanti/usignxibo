@@ -4,7 +4,7 @@ import { XiboComponent, Criteria } from './XiboComponent'
 export interface TagInsert {
     name?: string;
     isRequired?: number;
-    options?: string[];
+    options?: string[] | string;
 }
 
 export interface Tag {
@@ -12,7 +12,7 @@ export interface Tag {
     tag: string;
     isSystem: number;
     isRequired: number;
-    options: string[];
+    options: string; // array to Parse
     layouts: string[];
     playlists: string[];
     campaigns: string[];
@@ -30,8 +30,35 @@ interface TagCriteria extends Criteria {
     haveOptions?: boolean;
 }
 
-export class Tags extends XiboComponent<Tag, TagCriteria, null, TagInsert> {
+const updateOptions = (data: Tag): Tag => {
+    if (data.options) {
+        return {
+            ...data,
+            options: data.options ? JSON.parse(data.options as unknown as string) : undefined
+        }
+    }
+    return data
+}
+
+export class Tags extends XiboComponent<Tag, TagCriteria, TagInsert> {
     public constructor(server: Xibo) {
         super('/tag', server)
+    }
+
+    public async insert(content: TagInsert): Promise<Tag> {
+        // const insertedData = await super.insert(content)
+        // if (insertedData.options) {
+        //     insertedData.options = JSON.parse(insertedData.options as unknown  as string)
+        // }
+        return updateOptions(await super.insert(content))
+    }
+
+    public async update(id: number, content: Tag & TagInsert): Promise<Tag> {
+        // const updatedData = await super.insert(content)
+        // if (updatedData.options) {
+        //     updatedData.options = JSON.parse(updatedData.options as unknown  as string)
+        // }
+        // return updatedData
+        return updateOptions(await super.insert(content))
     }
 }

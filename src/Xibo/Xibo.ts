@@ -1,9 +1,10 @@
-import { XiboAPI, XiboErrorResponse } from './XiboAPI'
+import { XiboAPI  } from './XiboAPI'
 import { XiboError } from './XiboError'
 import { Tags } from './XiboTags'
 import { DisplayGroups } from './XiboDisplayGroups'
 import { Displays } from './XiboDisplays'
 import { Schedules } from './XiboSchedules'
+import { XiboCMSResponse } from './XiboComponent'
 
 interface XiboCredentials {
     client_id: string;
@@ -15,20 +16,22 @@ interface XiboDTO extends XiboCredentials {
     url: string;
 }
 
-interface XiboAuthResponse {
+interface XiboAuth {
     access_token: string;
     token_type: string;
     expires_in: number;
 }
 
-interface XiboAboutResponse {
+interface XiboAbout {
     version: string;
     sourceUrl: string;
 }
+type XiboAboutResponse = XiboCMSResponse<XiboAbout>
 
-interface XiboClockResponse {
+interface XiboClock {
     time: string;
 }
+type XiboClockResponse = XiboCMSResponse<XiboClock>
 
 export class Xibo {
     public api: XiboAPI;
@@ -47,12 +50,18 @@ export class Xibo {
         this.schedules = new Schedules(this)
     }
 
-    public async authenticate(): Promise<void> {
-        if (this.api.getToken()) return
+    /**
+     * Authenticate in the server with the credentials
+     * provided in the class constructor if the system hasn't
+     * a token yet
+     * 
+     */
+    public async authenticate(): Promise<boolean> {
+        if (this.api.getToken()) return true
 
         const endPoint = '/authorize/access_token'
-        const resp = await this.api.post<
-            XiboAuthResponse & XiboErrorResponse,
+        const resp = await this.api.cleanPost<
+            XiboAuth,
             XiboCredentials
         >(endPoint, this.credentials)
 
@@ -65,53 +74,49 @@ export class Xibo {
 
         if (resp.data.token_type === 'Bearer') {
             this.api.setToken(resp.data.access_token)
-            // console.log('Token setted')
-            return
+            return true
         }
 
         throw new XiboError('Invalid token')
     }
 
-    public async about(): Promise<XiboAboutResponse> {
+    /**
+     * Brings information about this API, such as version code
+     * 
+     */
+    public async about(): Promise<XiboAbout> {
         if (!this.api.getToken()) {
             await this.authenticate()
         }
 
         const endPoint = '/about'
-        const resp = await this.api.get<
-            XiboAboutResponse & XiboErrorResponse,
-            null
-        >(endPoint)
-
-        if (resp.status !== 200) {
-            if (resp.data.error && resp.data.error.message) {
-                throw new XiboError(resp.data.error.message)
+        const resp = await this.api.get<XiboAboutResponse>(endPoint)
+        if (!resp.data.success) {
+            if (resp.data.message) {
+                throw new XiboError(resp.data.message)
             }
             throw new XiboError(resp.statusText)
         }
-
-        //   console.log('Version:', resp.data.version)
-        return resp.data
+        return resp.data.data
     }
 
-    public async clock(): Promise<XiboClockResponse> {
+    /**
+     * Brings the current CMS time
+     * 
+     */
+    public async clock(): Promise<XiboClock> {
         if (!this.api.getToken()) {
             await this.authenticate()
         }
 
         const endPoint = '/clock'
-        const resp = await this.api.get<
-            XiboClockResponse & XiboErrorResponse,
-            null
-        >(endPoint)
-
-        if (resp.status !== 200) {
-            if (resp.data.error && resp.data.error.message) {
-                throw new XiboError(resp.data.error.message)
+        const resp = await this.api.get<XiboClockResponse>(endPoint)
+        if (!resp.data.success) {
+            if (resp.data.message) {
+                throw new XiboError(resp.data.message)
             }
             throw new XiboError(resp.statusText)
         }
-        //   console.log('Clock:', resp.data.time)
-        return resp.data
+        return resp.data.data
     }
 }

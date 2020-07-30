@@ -98,7 +98,7 @@ interface DisplayCriteria extends Criteria {
     lastAccessed?: string;
 }
 
-export class Displays extends XiboComponent<Display, DisplayCriteria, null, DisplayInsert> {
+export class Displays extends XiboComponent<Display, DisplayCriteria, DisplayInsert> {
     public constructor(server: Xibo) {
         super('/display', server)
     }
