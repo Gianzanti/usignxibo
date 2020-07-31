@@ -53,7 +53,6 @@ export class Schedules extends XiboComponent<Schedule, ScheduleCriteria, null> {
         super({
             endPoint: '/schedule',
             server: server,
-            gridExpected: false
         })
     }
 

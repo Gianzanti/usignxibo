@@ -1,9 +1,10 @@
 import { Permission } from './XiboPermission'
 import { Tag } from './XiboTags'
 import { Widgets } from './XiboWidgets'
-import { XiboComponent } from './XiboComponent'
+import { XiboComponent, XiboCMSResponse, XiboCMSData } from './XiboComponent'
 
 import { Xibo } from './Xibo'
+import { XiboError } from './XiboError'
 
 export interface Playlist {
 
@@ -59,7 +60,31 @@ export class Playlists extends XiboComponent<Playlist, null, null> {
         super({
             endPoint: '/playlist',
             server: server,
-            gridExpected: true
         })
     }
+
+    public async addMedia(playlistId: number, mediaId: number): Promise<void> {
+        const endPoint = `${this.endpoint}/library/assign/${playlistId}`
+        const resp = await this.server.api.post<XiboCMSResponse<XiboCMSData<Permission>>, number[]>(endPoint, [mediaId])
+        if (!resp.data.success) {
+            if (resp.data.message) {
+                throw new XiboError(resp.data.message)
+            }
+            throw new XiboError(resp.statusText)
+        }
+        console.log(resp.data)
+    }
+
+    // public async set(entityType: string, objectId: number): Promise<void> {
+    //     const endPoint = `${this.endpoint}/library/assign/${entityType}/${objectId}`
+    //     const resp = await this.server.api.post<XiboCMSResponse<XiboCMSData<Permission>>>(endPoint)
+    //     if (!resp.data.success) {
+    //         if (resp.data.message) {
+    //             throw new XiboError(resp.data.message)
+    //         }
+    //         throw new XiboError(resp.statusText)
+    //     }
+    //     // console.log(resp.data.data.data)
+    //     return
+    // }
 }

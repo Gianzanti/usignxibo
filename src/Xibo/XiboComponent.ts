@@ -63,8 +63,6 @@ interface XiboCredentials {
 export interface XiboComponentDTO {
     endPoint: string;
     server: Xibo;
-    gridExpected: boolean;
-    entityType: string;
 }
 
 
@@ -84,15 +82,9 @@ export abstract class XiboComponent<T, C, V> {
 
     protected endpoint: string;
 
-    protected gridExpected: boolean;
-
-    public entityType: string;
-
     public constructor(props: XiboComponentDTO) {
         this.endpoint = props.endPoint
         this.server = props.server
-        this.gridExpected = props.gridExpected
-        this.entityType = props.entityType
     }
 
     public async list(criteria?: C & Criteria, url?: string): Promise<XiboResponse<T>> {

@@ -117,7 +117,6 @@ export class Users extends XiboComponent<User, null, null> {
         super({
             endPoint: '/user',
             server: server,
-            gridExpected: true
         })
     }
 }

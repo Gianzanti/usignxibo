@@ -46,8 +46,6 @@ export class Permissions extends XiboComponent<Permission, null, null> {
         super({
             endPoint: '/user/permissions',
             server: server,
-            gridExpected: true,
-            entityType: 'Permission'
         })
     }
 
@@ -60,7 +58,7 @@ export class Permissions extends XiboComponent<Permission, null, null> {
             }
             throw new XiboError(resp.statusText)
         }
-        console.log(resp.data.data.data)
+        // console.log(resp.data.data.data)
         return
     }
 
@@ -73,7 +71,7 @@ export class Permissions extends XiboComponent<Permission, null, null> {
             }
             throw new XiboError(resp.statusText)
         }
-        console.log(resp.data.data.data)
+        // console.log(resp.data.data.data)
         return
     }
 

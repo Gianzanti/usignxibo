@@ -45,7 +45,6 @@ export class Tags extends XiboComponent<Tag, TagCriteria, TagInsert> {
         super({
             endPoint: '/tag',
             server: server,
-            gridExpected: true
         })
     }
 

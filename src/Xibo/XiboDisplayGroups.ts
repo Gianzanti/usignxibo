@@ -38,7 +38,6 @@ export class DisplayGroups extends XiboComponent<DisplayGroup, DisplayGroupCrite
         super({
             endPoint: '/displaygroups',
             server: server,
-            gridExpected: true
         })
     }
 }

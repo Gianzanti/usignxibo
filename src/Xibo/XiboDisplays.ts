@@ -103,7 +103,6 @@ export class Displays extends XiboComponent<Display, DisplayCriteria, DisplayIns
         super({
             endPoint: '/display',
             server: server,
-            gridExpected: true
         })
     }
 }

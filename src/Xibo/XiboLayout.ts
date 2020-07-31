@@ -83,6 +83,10 @@ export interface Layout {
     tags: Tag[];
 }
 
+interface LayoutFunctions {
+    checkOut: () => Promise<void>;
+}
+
 export interface LayoutCriteria {
     /** Filter by Layout Id */
     layoutId?: number;
@@ -115,7 +119,6 @@ export class Layouts extends XiboComponent<Layout, LayoutCriteria, null> {
         super({
             endPoint: '/layout',
             server: server,
-            gridExpected: true
         })
     }
 }

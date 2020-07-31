@@ -11,23 +11,37 @@ import { Medias } from './XiboMedia'
 import { Permissions } from './XiboPermission'
 
 interface XiboCredentials {
+    /** Client ID provided by Application settings in Xibo Server */
     client_id: string;
+
+    /** Client Secret provided by Application settings in Xibo Server */
     client_secret: string;
+
+    /** Grant Type is always client_credentials */
     grant_type: string;
 }
 
 interface XiboDTO extends XiboCredentials {
+    /** Xibo server url */
     url: string;
 }
 
 interface XiboAuth {
+    /** Bearer token to use in all requests */
     access_token: string;
+
+    /** Toekn type */
     token_type: string;
+
+    /** Time to expire, in minutes */
     expires_in: number;
 }
 
 interface XiboAbout {
+    /** Xibo server version */
     version: string;
+
+    /** not used */
     sourceUrl: string;
 }
 
@@ -62,9 +76,7 @@ export class Xibo {
 
     /**
      * Authenticate in the server with the credentials
-     * provided in the class constructor if the system hasn't
-     * a token yet
-     * 
+     * provided in the class constructor
      */
     public async authenticate(): Promise<boolean> {
         if (this.api.getToken()) return true

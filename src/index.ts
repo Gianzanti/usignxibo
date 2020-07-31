@@ -57,6 +57,24 @@ const run = async (): Promise<void> => {
         console.log('Xibo Version:', (await xibo.about()).version)
         console.log('Xibo CMS Time:', (await xibo.clock()).time)
 
+        const lo = await xibo.layouts.list({layout: 'teste_ubuntu', embed: 'regions,playlists,widgets'})
+        console.log('Layout:', lo)
+        console.log('Regions:', lo.list[0].regions)
+
+        console.log('Widgets:', lo.list[0].regions[0].regionPlaylist.widgets)
+        console.log('Widgets Options:', lo.list[0].regions[0].regionPlaylist.widgets[0].widgetOptions)
+
+        const plID = lo.list[0].regions[0].regionPlaylist.playlistId
+        console.log('PlaylistID:', plID)
+
+
+        // checkout the layout
+        lo.list[0].
+
+        const teste2 = await xibo.playlists.addMedia(plID, 32)
+        console.log('Teste:', teste2)
+
+
         // testTags(xibo)
 
         // const pl = await xibo.playlists.list()
@@ -84,11 +102,11 @@ const run = async (): Promise<void> => {
         // console.log('Medias:', medias.list)
 
         // inserting a media from URL
-        const inserted = await xibo.medias.insert({url: 'https://api.fusion.usign.io/files/e646ab591cda9f7b5b2a631038d68319_1596202206485.jpeg', type: 'Image'})
-        console.log(inserted)
+        // const inserted = await xibo.medias.insert({url: 'https://api.fusion.usign.io/files/e646ab591cda9f7b5b2a631038d68319_1596202206485.jpeg', type: 'Image'})
+        // console.log(inserted)
 
-        const permissions = await xibo.permissions.get('Media', inserted.mediaId)
-        console.log('Permssions:', permissions)
+        // const permissions = await xibo.permissions.get('Media', inserted.mediaId)
+        // console.log('Permssions:', permissions)
 
         
         // const teste = await xibo.medias.update(inserted.mediaId, inserted)

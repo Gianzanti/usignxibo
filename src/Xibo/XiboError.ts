@@ -3,13 +3,8 @@ export class XiboError implements Error {
 
     public message: string;
 
-    public stack?: string | undefined;
-
-    public constructor(message: string, stack?: string) {
+    public constructor(message: string) {
         this.message = message
-        if (stack) {
-            this.stack = stack
-        }
     }
 
     public toString(): string {

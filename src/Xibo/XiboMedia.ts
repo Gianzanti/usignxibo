@@ -131,8 +131,6 @@ export class Medias extends XiboComponent<Media, MediaCriteria, MediaInsert> {
         super({
             endPoint: '/library',
             server: server,
-            gridExpected: true,
-            entityType: 'Media'
         })
     }
 
