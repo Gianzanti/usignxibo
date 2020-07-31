@@ -1,7 +1,5 @@
 import axios, { AxiosInstance, AxiosPromise } from 'axios'
-// import FormData from 'form-data'
 import qs from 'qs'
-
 
 interface XiboErrorData {
     [property: string]: string ;

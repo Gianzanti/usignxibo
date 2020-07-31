@@ -5,6 +5,10 @@ import { DisplayGroups } from './XiboDisplayGroups'
 import { Displays } from './XiboDisplays'
 import { Schedules } from './XiboSchedules'
 import { XiboCMSResponse } from './XiboComponent'
+import { Playlists } from './XiboPlaylist'
+import { Layouts } from './XiboLayout'
+import { Medias } from './XiboMedia'
+import { Permissions } from './XiboPermission'
 
 interface XiboCredentials {
     client_id: string;
@@ -26,12 +30,10 @@ interface XiboAbout {
     version: string;
     sourceUrl: string;
 }
-type XiboAboutResponse = XiboCMSResponse<XiboAbout>
 
 interface XiboClock {
     time: string;
 }
-type XiboClockResponse = XiboCMSResponse<XiboClock>
 
 export class Xibo {
     public api: XiboAPI;
@@ -40,6 +42,10 @@ export class Xibo {
     public displaygroups: DisplayGroups
     public displays: Displays
     public schedules: Schedules
+    public playlists: Playlists
+    public layouts: Layouts
+    public medias: Medias
+    public permissions: Permissions
 
     public constructor({ url, ...credentials }: XiboDTO) {
         this.api = new XiboAPI(url)
@@ -48,6 +54,10 @@ export class Xibo {
         this.displaygroups = new DisplayGroups(this)
         this.displays = new Displays(this)
         this.schedules = new Schedules(this)
+        this.playlists = new Playlists(this)
+        this.layouts = new Layouts(this)
+        this.medias = new Medias(this)
+        this.permissions = new Permissions(this)
     }
 
     /**
@@ -85,19 +95,7 @@ export class Xibo {
      * 
      */
     public async about(): Promise<XiboAbout> {
-        if (!this.api.getToken()) {
-            await this.authenticate()
-        }
-
-        const endPoint = '/about'
-        const resp = await this.api.get<XiboAboutResponse>(endPoint)
-        if (!resp.data.success) {
-            if (resp.data.message) {
-                throw new XiboError(resp.data.message)
-            }
-            throw new XiboError(resp.statusText)
-        }
-        return resp.data.data
+        return await this.getData('/about')
     }
 
     /**
@@ -105,12 +103,11 @@ export class Xibo {
      * 
      */
     public async clock(): Promise<XiboClock> {
-        if (!this.api.getToken()) {
-            await this.authenticate()
-        }
+        return await this.getData('/clock')
+    }
 
-        const endPoint = '/clock'
-        const resp = await this.api.get<XiboClockResponse>(endPoint)
+    async getData<T>(endPoint: string): Promise<T> {
+        const resp = await this.api.get<XiboCMSResponse<T>>(endPoint)
         if (!resp.data.success) {
             if (resp.data.message) {
                 throw new XiboError(resp.data.message)

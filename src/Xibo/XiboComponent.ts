@@ -64,6 +64,7 @@ export interface XiboComponentDTO {
     endPoint: string;
     server: Xibo;
     gridExpected: boolean;
+    entityType: string;
 }
 
 
@@ -85,10 +86,13 @@ export abstract class XiboComponent<T, C, V> {
 
     protected gridExpected: boolean;
 
-    public constructor({endPoint, server, gridExpected}: XiboComponentDTO) {
-        this.endpoint = endPoint
-        this.server = server
-        this.gridExpected = gridExpected
+    public entityType: string;
+
+    public constructor(props: XiboComponentDTO) {
+        this.endpoint = props.endPoint
+        this.server = props.server
+        this.gridExpected = props.gridExpected
+        this.entityType = props.entityType
     }
 
     public async list(criteria?: C & Criteria, url?: string): Promise<XiboResponse<T>> {
@@ -109,7 +113,7 @@ export abstract class XiboComponent<T, C, V> {
         const limit = (criteria && criteria.length) ? criteria.length : 10
 
         const currentPage = Math.ceil((start + currentRecords) / limit)
-        const totalPages = Math.floor(totalRecords / limit) + 1
+        const totalPages = Math.ceil(totalRecords / limit)
         const isLastPage = totalPages === currentPage
         let newCriteria: C & Criteria
         if (criteria) {

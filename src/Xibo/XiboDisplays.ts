@@ -100,6 +100,10 @@ interface DisplayCriteria extends Criteria {
 
 export class Displays extends XiboComponent<Display, DisplayCriteria, DisplayInsert> {
     public constructor(server: Xibo) {
-        super('/display', server)
+        super({
+            endPoint: '/display',
+            server: server,
+            gridExpected: true
+        })
     }
 }

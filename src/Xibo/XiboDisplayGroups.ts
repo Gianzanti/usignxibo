@@ -35,6 +35,10 @@ interface DisplayGroupCriteria extends Criteria {
 
 export class DisplayGroups extends XiboComponent<DisplayGroup, DisplayGroupCriteria, DisplayGroupInsert> {
     public constructor(server: Xibo) {
-        super('/displaygroup', server)
+        super({
+            endPoint: '/displaygroups',
+            server: server,
+            gridExpected: true
+        })
     }
 }

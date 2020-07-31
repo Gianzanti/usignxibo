@@ -1,3 +1,4 @@
+/* eslint-disable no-undef */
 import { Xibo } from './Xibo'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -8,7 +9,7 @@ if (typeof window !== 'undefined') {
 }
 
 const xiboID = 'ZadAUKOUuUOuozo1XEPrYW1vZz5hBwgO0ElzWxpa'
-const xiboSecret = 'qBSTVHctGzkBmb88DMYmDGrpLinvbGyqcOj0KTN8bmv7zlmcgXPXdS9fF6chxy3wqUHcyKOHwa2IT0gYG4982uNXGeNDoBrAxmqhGvGNtRfhyslfbeyqo4V9BBibcaniVbuc5FzKgBK3vtrqWiIx3ZKOb86TYGcA8wo2seb3iyDMygWGuucvXdgHbtwDWmiM8JsPEfIi9IBiAltI8yivsASORucQuLFudoUpIsXRbAa5Bel9F3j6KK2OpUCObQ'
+const xiboSecret = 'IKEAfUOtyvuBU6DNjkALSPJfQbdgsxatx4XHjVn60uPFIotAAOaiehvs5FIJf2QZ9xQhIrATxsHEj3XskhT9Cfw8xWkC8u84om4czWTvWNhTBBIre2efyvHLrI898NeKGA5FJTVeAQgi0vRRTLls4meogRy8cnRzDmKWIHPyr9d4igyrkk4DtI9e9Q4OaBu9LShEtHxW1bdVwc8dwbjNspURKf27aket0Xkr0sAB92gjaGizyhCsFPpGiatQHS'
 
 const testTags = async (xibo: Xibo): Promise<void> => {
         let tags = await xibo.tags.list({length: 2})
@@ -52,13 +53,20 @@ const run = async (): Promise<void> => {
     })
 
     try {
-        // await xibo.authenticate()
+        await xibo.authenticate()
         console.log('Xibo Version:', (await xibo.about()).version)
         console.log('Xibo CMS Time:', (await xibo.clock()).time)
 
         // testTags(xibo)
 
+        // const pl = await xibo.playlists.list()
+        // console.log('Playlists:', pl)
 
+
+        // const lay = await xibo.layouts.list({embed: 'regions'})
+        // console.log('Layouts:', lay.list)
+
+        // console.log(lay.list[0].regions)
 
         // const dgList = await xibo.displaygroups.list({displayGroup: 'jbtec'})
         // console.log('DisplayGroups:', dgList)
@@ -69,9 +77,22 @@ const run = async (): Promise<void> => {
         // const ds = await xibo.displays.list({displayGroupId: dgId})
         // console.log('Displays:', ds)
 
-        const sch = await xibo.schedules.listEvents({displayGroupId: 6, date: '2020-07-30 00:00:00'})
-        console.log('Schedule:', sch.list)
+        // const sch = await xibo.schedules.listEvents({displayGroupId: 6, date: '2020-07-30 00:00:00'})
+        // console.log('Schedule:', sch.list)
 
+        // const medias = await xibo.medias.list({type: 'image'})
+        // console.log('Medias:', medias.list)
+
+        // inserting a media from URL
+        const inserted = await xibo.medias.insert({url: 'https://api.fusion.usign.io/files/e646ab591cda9f7b5b2a631038d68319_1596202206485.jpeg', type: 'Image'})
+        console.log(inserted)
+
+        const permissions = await xibo.permissions.get('Media', inserted.mediaId)
+        console.log('Permssions:', permissions)
+
+        
+        // const teste = await xibo.medias.update(inserted.mediaId, inserted)
+        // console.log('Teste:', teste)
 
 
     } catch (e) {

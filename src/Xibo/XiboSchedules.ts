@@ -1,5 +1,5 @@
 import { Xibo } from './Xibo'
-import { XiboComponent, Criteria, XiboResponse, XiboComponentDTO } from './XiboComponent'
+import { XiboComponent, Criteria, XiboResponse } from './XiboComponent'
 import { Campaign } from './XiboCampaing'
 import { DisplayGroup } from './XiboDisplayGroups'
 import { Layout } from './XiboLayout'

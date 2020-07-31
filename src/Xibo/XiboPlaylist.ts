@@ -1,6 +1,9 @@
 import { Permission } from './XiboPermission'
 import { Tag } from './XiboTags'
 import { Widgets } from './XiboWidgets'
+import { XiboComponent } from './XiboComponent'
+
+import { Xibo } from './Xibo'
 
 export interface Playlist {
 
@@ -49,4 +52,14 @@ export interface Playlist {
     //An array of permissions,
     permissions: Permission[];
 
+}
+
+export class Playlists extends XiboComponent<Playlist, null, null> {
+    public constructor(server: Xibo) {
+        super({
+            endPoint: '/playlist',
+            server: server,
+            gridExpected: true
+        })
+    }
 }
