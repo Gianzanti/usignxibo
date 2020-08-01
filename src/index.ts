@@ -1,6 +1,7 @@
 /* eslint-disable no-undef */
 import { Xibo } from './Xibo'
 import { v4 as uuidv4 } from 'uuid'
+import { Layout } from './Xibo/XiboLayout'
 
 const proxy = 'https://corsproxy.usign.io/'
 let xiboURL = 'https://wide.ds-cloud.io/api'
@@ -57,23 +58,36 @@ const run = async (): Promise<void> => {
         console.log('Xibo Version:', (await xibo.about()).version)
         console.log('Xibo CMS Time:', (await xibo.clock()).time)
 
+        let theLayout: Layout
+
         const lo = await xibo.layouts.list({layout: 'teste_ubuntu', embed: 'regions,playlists,widgets'})
         console.log('Layout:', lo)
-        console.log('Regions:', lo.list[0].regions)
+        theLayout = lo.list[0]
 
-        console.log('Widgets:', lo.list[0].regions[0].regionPlaylist.widgets)
-        console.log('Widgets Options:', lo.list[0].regions[0].regionPlaylist.widgets[0].widgetOptions)
+        if (theLayout.publishedStatus !== 'Draft') {
+            // checkout the layout
+            theLayout = await xibo.layouts.checkout(theLayout.layoutId)
+            console.log('Draft:', theLayout)
+        } else {
+            // get the real draft layout
+            theLayout = await xibo.layouts.getDraftLayout(theLayout.layoutId)
+        }
 
-        const plID = lo.list[0].regions[0].regionPlaylist.playlistId
+        console.log(theLayout)
+
+
+        // console.log('Regions:', chk.list[0].regions)
+        // console.log('Widgets:', chk.list[0].regions[0].regionPlaylist.widgets)
+        // console.log('Widgets Options:', chk.list[0].regions[0].regionPlaylist.widgets[0].widgetOptions)
+
+        const plID = theLayout.regions[0].regionPlaylist.playlistId
         console.log('PlaylistID:', plID)
-
-
-        // checkout the layout
-        lo.list[0].
 
         const teste2 = await xibo.playlists.addMedia(plID, 32)
         console.log('Teste:', teste2)
 
+        const teste3 = await xibo.layouts.publish(theLayout.parentId)
+        console.log('Publish: ', teste3)
 
         // testTags(xibo)
 

@@ -1,10 +1,10 @@
-import { Permission } from './XiboPermission'
 import { Tag } from './XiboTags'
 import { Widgets } from './XiboWidgets'
-import { XiboComponent, XiboCMSResponse, XiboCMSData } from './XiboComponent'
+import { XiboComponent, XiboCMSResponse } from './XiboComponent'
 
 import { Xibo } from './Xibo'
 import { XiboError } from './XiboError'
+import { Permission } from './XiboPermission'
 
 export interface Playlist {
 
@@ -55,6 +55,11 @@ export interface Playlist {
 
 }
 
+interface MediaInsert {
+    'media[]': string;
+    duration?: number;
+}
+
 export class Playlists extends XiboComponent<Playlist, null, null> {
     public constructor(server: Xibo) {
         super({
@@ -63,9 +68,10 @@ export class Playlists extends XiboComponent<Playlist, null, null> {
         })
     }
 
-    public async addMedia(playlistId: number, mediaId: number): Promise<void> {
+    public async addMedia(playlistId: number, mediaId: number): Promise<Playlist> {
         const endPoint = `${this.endpoint}/library/assign/${playlistId}`
-        const resp = await this.server.api.post<XiboCMSResponse<XiboCMSData<Permission>>, number[]>(endPoint, [mediaId])
+        const arrMedias: MediaInsert = {'media[]': mediaId.toString()}
+        const resp = await this.server.api.post<XiboCMSResponse<Playlist>, MediaInsert>(endPoint, arrMedias)
         if (!resp.data.success) {
             if (resp.data.message) {
                 throw new XiboError(resp.data.message)
@@ -73,18 +79,6 @@ export class Playlists extends XiboComponent<Playlist, null, null> {
             throw new XiboError(resp.statusText)
         }
         console.log(resp.data)
+        return resp.data.data
     }
-
-    // public async set(entityType: string, objectId: number): Promise<void> {
-    //     const endPoint = `${this.endpoint}/library/assign/${entityType}/${objectId}`
-    //     const resp = await this.server.api.post<XiboCMSResponse<XiboCMSData<Permission>>>(endPoint)
-    //     if (!resp.data.success) {
-    //         if (resp.data.message) {
-    //             throw new XiboError(resp.data.message)
-    //         }
-    //         throw new XiboError(resp.statusText)
-    //     }
-    //     // console.log(resp.data.data.data)
-    //     return
-    // }
 }
