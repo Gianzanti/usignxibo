@@ -1,6 +1,6 @@
-import { XiboComponent, XiboCMSResponse, XiboCMSData } from "./XiboComponent"
-import { Xibo } from "."
-import { XiboError } from "./XiboError"
+import { XiboComponent, XiboCMSResponse, XiboCMSData } from './XiboComponent'
+import { Xibo } from '.'
+import { XiboError } from './XiboError'
 
 export interface Permission {
     /** The ID of this Permission Record */
@@ -40,8 +40,12 @@ export interface Permission {
     modifyPermissions: number;
 }
 
+export interface PermissionCriteria {
+    /** The ID of this Permission Record */
+    permissionId?: number;
+}
 
-export class Permissions extends XiboComponent<Permission, null, null> {
+export class Permissions extends XiboComponent<Permission, PermissionCriteria, null> {
     public constructor(server: Xibo) {
         super({
             endPoint: '/user/permissions',

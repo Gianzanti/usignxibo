@@ -1,5 +1,6 @@
 import { Xibo } from './Xibo'
-import { XiboComponent, Criteria } from './XiboComponent'
+import { XiboComponent } from './XiboComponent'
+import { Tag } from './XiboTags'
 
 export interface DisplayGroupInsert {
     displayGroup?: string;
@@ -10,20 +11,39 @@ export interface DisplayGroupInsert {
 }
 
 export interface DisplayGroup {
+    /** The displayGroup Id */
     displayGroupId: number;
+
+    /** The displayGroup Name */
     displayGroup: string;
+
+    /** The displayGroup Description */
     description: string;
+
+    /** A flag indicating whether this displayGroup is a single display displayGroup */
     isDisplaySpecific: number;
+
+    /** A flag indicating whether this displayGroup is dynamic */
     isDynamic: number;
+
+    /** Criteria for this dynamic group. A comma separated set of regular expressions to apply */
     dynamicCriteria: string;
+
+    /** Criteria for this dynamic group. A comma separated set of tags to apply */
     dynamicCriteriaTags: string;
+
+    /** The UserId who owns this display group */
     userId: number;
-    tags: string;
-    tagValues: string;
-    bandwidthLimit: string;
+
+    /** Tags associated with this DisplayGroup */
+    tags: Tag[];
+
+    /** The display bandwidth limit */
+    bandwidthLimit: number;
+
 }
 
-interface DisplayGroupCriteria extends Criteria {
+interface DisplayGroupCriteria {
     displayGroupId?: number;
     displayGroup?: string;
     displayId?: number;
@@ -36,7 +56,7 @@ interface DisplayGroupCriteria extends Criteria {
 export class DisplayGroups extends XiboComponent<DisplayGroup, DisplayGroupCriteria, DisplayGroupInsert> {
     public constructor(server: Xibo) {
         super({
-            endPoint: '/displaygroups',
+            endPoint: '/displaygroup',
             server: server,
         })
     }

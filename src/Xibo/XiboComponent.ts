@@ -53,28 +53,20 @@ export interface XiboResponse<T> {
     nextPage?: () => Promise<XiboResponse<T>>;
 }
 
-
-interface XiboCredentials {
-    client_id: string;
-    client_secret: string;
-    grant_type: string;
-}
-
 export interface XiboComponentDTO {
     endPoint: string;
     server: Xibo;
 }
 
-
 /**
  * An abstract class to share methods and properties between
  * all the Xibo components available.
  * To instantiate it is necessary to supply 3 types:
- * @template T Defines the return type of the get, list, insert and update methods
- * @template C Defines the criterias to search component
- * @template V Defines the type of the argument for the insert method
+ * @typeparam TReturn - Defines the return type of the get, list, insert and update methods
+ * @typeparam TCriteria - Defines the criterias to search component
+ * @typeparam TInsert - Defines the type of the argument for the insert method
  */
-export abstract class XiboComponent<T, C, V> {
+export abstract class XiboComponent<TReturn, TCriteria, TInsert> {
     // /** Maximun limit allowed on Mjolnir */
     // public static readonly limitTotal: number = 100;
 
@@ -87,11 +79,11 @@ export abstract class XiboComponent<T, C, V> {
         this.server = props.server
     }
 
-    public async list(criteria?: C & Criteria, url?: string): Promise<XiboResponse<T>> {
+    public async list(criteria?: TCriteria & Criteria, url?: string): Promise<XiboResponse<TReturn>> {
         //   const crit = criteria || { length: 10 }
         // TODO: ensure that the criteria.limit is lower than desired
         const ep = url || this.endpoint
-        const resp = await this.server.api.get<XiboCMSResponse<XiboCMSData<T>>, C & Criteria>(ep, criteria)
+        const resp = await this.server.api.get<XiboCMSResponse<XiboCMSData<TReturn>>, TCriteria & Criteria>(ep, criteria)
         if (!resp.data.success) {
             if (resp.data.message) {
                 throw new XiboError(resp.data.message)
@@ -107,14 +99,14 @@ export abstract class XiboComponent<T, C, V> {
         const currentPage = Math.ceil((start + currentRecords) / limit)
         const totalPages = Math.ceil(totalRecords / limit)
         const isLastPage = totalPages === currentPage
-        let newCriteria: C & Criteria
+        let newCriteria: TCriteria & Criteria
         if (criteria) {
             newCriteria = criteria
             newCriteria.start = criteria.start || 0
             newCriteria.start = newCriteria.start + (newCriteria.length ? newCriteria.length : 10)
         }
 
-        const ret: XiboResponse<T> = {
+        const ret: XiboResponse<TReturn> = {
             list: resp.data.data.data,
             start: start,
             count: totalRecords,
@@ -122,7 +114,7 @@ export abstract class XiboComponent<T, C, V> {
             currentPage,
             isLastPage,
             nextPage: !isLastPage
-                ? async (): Promise<XiboResponse<T>> => {
+                ? async (): Promise<XiboResponse<TReturn>> => {
                     return this.list(newCriteria)
                 }
                 : undefined
@@ -130,8 +122,8 @@ export abstract class XiboComponent<T, C, V> {
         return ret
     }
 
-    public async insert(content: V): Promise<T> {
-        const resp = await this.server.api.post<XiboCMSResponse<T>, V>(this.endpoint, content)
+    public async insert(content: TInsert): Promise<TReturn> {
+        const resp = await this.server.api.post<XiboCMSResponse<TReturn>, TInsert>(this.endpoint, content)
         if (!resp.data.success) {
             if (resp.data.message) {
                 throw new XiboError(resp.data.message)
@@ -142,9 +134,9 @@ export abstract class XiboComponent<T, C, V> {
         return resp.data.data
     }
 
-    public async update(id: number, content: T & V): Promise<T> {
+    public async update(id: number, content: TReturn & TInsert): Promise<TReturn> {
         const url = `${this.endpoint}/${id}`
-        const resp = await this.server.api.put<XiboCMSResponse<T>, V>(url, content)
+        const resp = await this.server.api.put<XiboCMSResponse<TReturn>, TInsert>(url, content)
         if (!resp.data.success) {
             if (resp.data.message) {
                 throw new XiboError(resp.data.message)
@@ -157,7 +149,7 @@ export abstract class XiboComponent<T, C, V> {
 
     public async remove(id: number): Promise<boolean> {
         const url = `${this.endpoint}/${id}`
-        const resp = await this.server.api.delete<XiboCMSResponse<T>>(url)
+        const resp = await this.server.api.delete<XiboCMSResponse<TReturn>>(url)
         if (!resp.data.success) {
             if (resp.data.message) {
                 throw new XiboError(resp.data.message)

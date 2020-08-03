@@ -29,7 +29,7 @@ export class XiboAPI {
     /**
      * Sets the default parameters for the current axios instance
      *
-     * @param baseURL Defines the baseURL that we'll connect to
+     * @param baseURL - Defines the baseURL that we'll connect to
      */
     public constructor(baseURL: string) {
         this.ax = axios.create({
@@ -85,14 +85,14 @@ export class XiboAPI {
 
     /**
      * Performs a GET action in the provided url with the
-     * params as Criteria. The expected response will be of
-     * the type provided as R
-     * @template R Defines the return type
-     * @template C Defines the search criteria type
-     * @param url the endpoint to point the get action
-     * @param criteria optional criteria to get items
+     * params as TCriteria. The expected response will be of
+     * the type provided as TReturn
+     * @typeParam TReturn - Defines the return type
+     * @typeParam TCriteria - Defines the search criteria type
+     * @param url - the endpoint to point the get action
+     * @param criteria - optional criteria to get items
      */
-    public get<R, C = null>(url: string, criteria?: C): AxiosPromise<R> {
+    public get<TReturn, TCriteria = null>(url: string, criteria?: TCriteria): AxiosPromise<TReturn> {
         const envelope = {
             ...criteria,
             envelope: 1
@@ -107,14 +107,15 @@ export class XiboAPI {
 
     /**
      * Performs a POST action in the provided url with the
-     * data of type P. The expected response will be of
-     * the type provided as R
-     * @template R Defines the return type
-     * @template P Defines the type of the information sent
-     * @param url the endpoint to point the POST action
-     * @param data optional information to send in the POST
+     * data of type TData. The expected response will be of
+     * the type provided as TReturn
+     * @typeParam TReturn - Defines the return type
+     * @typeParam TData - Defines the type of the data sent
+     * @param url - the endpoint to point the POST action
+     * @param data - optional information to send in the POST
+     * @returns Returns an Axios Promise of `TReturn`
      */
-    public post<R, P = null>(url: string, data?: P): AxiosPromise<R> {
+    public post<TReturn, TData = null>(url: string, data?: TData): AxiosPromise<TReturn> {
         const envelope = {
             envelope: 1
         }
@@ -128,15 +129,15 @@ export class XiboAPI {
     }
 
     /**
-     * Performs a POST action in the provided url with the
-     * data of type P. The expected response will be of
-     * the type provided as R
-     * @template R Defines the return type
-     * @template P Defines the type of the information sent
-     * @param url the endpoint to point the POST action
-     * @param data optional information to send in the POST
+     * Performs a clean POST action in the provided url with the
+     * data of type TData. The expected response will be of
+     * the type provided as TReturn
+     * @typeParam TReturn - Defines the return type
+     * @typeParam TData - Defines the type of the information sent
+     * @param url - the endpoint to point the POST action
+     * @param data - optional information to send in the POST
      */
-    public cleanPost<R, P = null>(url: string, data?: P): AxiosPromise<R & XiboErrorResponse> {
+    public cleanPost<TReturn, TData = null>(url: string, data?: TData): AxiosPromise<TReturn & XiboErrorResponse> {
         return this.ax({
             headers: this.headerToken,
             method: 'POST',
@@ -147,14 +148,14 @@ export class XiboAPI {
 
     /**
    * Performs a PUT action in the provided url with the
-   * data of type P. The expected response will be of
-   * the type provided as R
-   * @template R Defines the return type
-   * @template P Defines the type of the information sent
-   * @param url the endpoint to point the PUT action
-   * @param data optional information to send in the PUT
+   * data of type TData. The expected response will be of
+   * the type provided as TReturn
+   * @typeParam TReturn - Defines the return type
+   * @typeParam TData - Defines the type of the information sent
+   * @param url - the endpoint to point the PUT action
+   * @param data - optional information to send in the PUT
    */
-    public put<R, P>(url: string, data: P): AxiosPromise<R> {
+    public put<TReturn, TData>(url: string, data: TData): AxiosPromise<TReturn> {
         const envelope = {
             envelope: 1
         }
@@ -167,33 +168,12 @@ export class XiboAPI {
         })
     }
 
-    // /**
-    //  * Performs a PUT action in the provided url. This method is
-    //  * used only to perform upload of files to a server using
-    //  * REST API
-    //  * @template R Defines the return type
-    //  * @param url the endpoint to point the PUT action
-    //  * @param newHeader define the additional information to put it
-    //  * the request header to performe the desired action
-    //  * @param data the file chunck to upload
-    //  */
-    // public putFile<R> (url: string, newHeader: ScalaUploadHeader, data: Buffer): AxiosPromise<R> {
-    //   return this.ax({
-    //     headers: { ...this.headerToken, ...newHeader },
-    //     method: 'PUT',
-    //     url,
-    //     data,
-    //     timeout: 0,
-    //     maxContentLength: Infinity
-    //   })
-    // }
-
     /**
    * Performs a DELETE action in the provided url
-   * @template R Defines the return type
-   * @param url the endpoint to point the PUT action
+   * @typeParam TReturn - Defines the return type
+   * @param url - the endpoint to point the PUT action
    */
-    public delete<R>(url: string): AxiosPromise<R> {
+    public delete<TReturn>(url: string): AxiosPromise<TReturn> {
         return this.ax({
             headers: this.headerToken,
             method: 'DELETE',

@@ -18,7 +18,7 @@ interface XiboCredentials {
     client_secret: string;
 
     /** Grant Type is always client_credentials */
-    grant_type: string;
+    grant_type: 'client_credentials';
 }
 
 interface XiboDTO extends XiboCredentials {
@@ -49,7 +49,18 @@ interface XiboClock {
     time: string;
 }
 
-export class Xibo {
+export interface XiboDef {
+    tags: Tags;
+    displaygroups: DisplayGroups;
+    displays: Displays;
+    schedules: Schedules;
+    playlists: Playlists;
+    layouts: Layouts;
+    medias: Medias;
+    permissions: Permissions;
+}
+
+export class Xibo implements XiboDef {
     public api: XiboAPI;
     private credentials: XiboCredentials;
     public tags: Tags;

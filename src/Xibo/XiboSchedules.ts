@@ -1,6 +1,6 @@
 import { Xibo } from './Xibo'
-import { XiboComponent, Criteria, XiboResponse } from './XiboComponent'
-import { Campaign } from './XiboCampaing'
+import { XiboComponent, XiboResponse } from './XiboComponent'
+import { Campaign } from './XiboCampaign'
 import { DisplayGroup } from './XiboDisplayGroups'
 import { Layout } from './XiboLayout'
 
@@ -43,9 +43,9 @@ export interface Schedule {
     layouts: Layout[];
 }
 
-interface ScheduleCriteria extends Criteria {
-    displayGroupId: number;
-    date: string; //Date in Y-m-d H:i:s
+interface ScheduleCriteria {
+    displayGroupId?: number;
+    date?: string; //Date in Y-m-d H:i:s
 }
 
 export class Schedules extends XiboComponent<Schedule, ScheduleCriteria, null> {

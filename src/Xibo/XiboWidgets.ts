@@ -1,6 +1,6 @@
-import { WidgetOption } from "./XiboWidgetOption";
-import { WidgetAudio } from "./XiboWidgetAudio";
-import { Permission } from "./XiboPermission";
+import { WidgetOption } from './XiboWidgetOption'
+import { WidgetAudio } from './XiboWidgetAudio'
+import { Permission } from './XiboPermission'
 
 export interface Widgets {
     /** The Widget ID */

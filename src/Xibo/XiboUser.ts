@@ -1,11 +1,11 @@
-import { Campaign } from "./XiboCampaing";
-import { Layout } from "./XiboLayout";
-import { Media } from "./XiboMedia";
-import { Schedule } from "./XiboSchedules";
-import { Playlist } from "./XiboPlaylist";
-import { XiboComponent } from "./XiboComponent";
-import { Xibo } from ".";
-import { UserGroup } from "./XiboUserGroup";
+import { Campaign } from './XiboCampaign'
+import { Layout } from './XiboLayout'
+import { Media } from './XiboMedia'
+import { Schedule } from './XiboSchedules'
+import { Playlist } from './XiboPlaylist'
+import { XiboComponent } from './XiboComponent'
+import { Xibo } from '.'
+import { UserGroup } from './XiboUserGroup'
 
 export interface User {
     /** The ID of this User */

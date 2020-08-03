@@ -55,12 +55,16 @@ export interface Playlist {
 
 }
 
+export interface PlaylistCriteria {
+    //The ID of this Playlist,  
+    playlistId?: number;
+}
 interface MediaInsert {
     'media[]': string;
     duration?: number;
 }
 
-export class Playlists extends XiboComponent<Playlist, null, null> {
+export class Playlists extends XiboComponent<Playlist, PlaylistCriteria, null> {
     public constructor(server: Xibo) {
         super({
             endPoint: '/playlist',
@@ -78,7 +82,7 @@ export class Playlists extends XiboComponent<Playlist, null, null> {
             }
             throw new XiboError(resp.statusText)
         }
-        console.log(resp.data)
+        // console.log(resp.data)
         return resp.data.data
     }
 }

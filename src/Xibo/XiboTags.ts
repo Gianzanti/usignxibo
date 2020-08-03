@@ -8,29 +8,65 @@ export interface TagInsert {
 }
 
 export interface Tag {
+    /** The Tag ID */
     tagId: number;
+
+    /** The Tag Name */
     tag: string;
-    isSystem: number;
-    isRequired: number;
-    options: string; // array to Parse
+
+    /** Flag, whether the tag is a system tag */
+    isSystem: 0 | 1;
+
+    /** Flag, whether the tag requires additional values */
+    isRequired: 0 | 1;
+
+    /** An array of options assigned to this Tag */
+    options: string[];
+
+    /** An array of layoutID and values pairs with this Tag */
     layouts: string[];
+
+    /** An array of playlistIDs and values with this Tag */
     playlists: string[];
+
+    /** An array of campaignIDs and values with this Tag */
     campaigns: string[];
+
+    /** An array of mediaIds and values with this Tag */
     medias: string[];
+
+    /** An array of displayGroupIds and values with this Tag */
     displayGroups: string[];
+
+    /** The Tag Value */
     value: string;
 }
 
+/** 
+ * Search Criteria for tags viewable by current user 
+ * 
+ */
 interface TagCriteria extends Criteria {
+    /** Filter by Tag Id */
     tagId?: number;
+
+    /** Filter by partial Tag */
     tag?: string;
+
+    /** Filter by exact Tag */
     exactTag?: string;
-    isSystem?: boolean;
-    isRequired?: boolean;
-    haveOptions?: boolean;
+
+    /** Filter by isSystem flag */
+    isSystem?: 0 | 1;
+
+    /** Filter by isRequired flag */
+    isRequired?: 0 | 1;
+
+    /** Set to 1 to show only results that have options set */
+    haveOptions?: 0 | 1;
 }
 
-const updateOptions = (data: Tag): Tag => {
+const parseOptions = (data: Tag): Tag => {
     if (data.options) {
         return {
             ...data,
@@ -49,10 +85,10 @@ export class Tags extends XiboComponent<Tag, TagCriteria, TagInsert> {
     }
 
     public async insert(content: TagInsert): Promise<Tag> {
-        return updateOptions(await super.insert(content))
+        return parseOptions(await super.insert(content))
     }
 
     public async update(id: number, content: Tag & TagInsert): Promise<Tag> {
-        return updateOptions(await super.insert(content))
+        return parseOptions(await super.update(id, content))
     }
 }
