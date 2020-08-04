@@ -1,31 +1,24 @@
-import { Xibo } from 'Xibo'
+/* eslint-disable no-undef */
+/* eslint-disable @typescript-eslint/camelcase */
+import { xb, getList, XiboSnippetVersion } from './Xibo'
+const run = async (): Promise<void> => {
+    console.log('Snippet Version:', XiboSnippetVersion)
 
-const proxy = 'https://corsproxy.usign.io/'
-let xiboURL = 'https://wide.ds-cloud.io/api'
-if (typeof window !== 'undefined') {
-    xiboURL = `${proxy}${xiboURL}`
-}
-
-const xiboID = 'ZadAUKOUuUOuozo1XEPrYW1vZz5hBwgO0ElzWxpa'
-const xiboSecret = 'qBSTVHctGzkBmb88DMYmDGrpLinvbGyqcOj0KTN8bmv7zlmcgXPXdS9fF6chxy3wqUHcyKOHwa2IT0gYG4982uNXGeNDoBrAxmqhGvGNtRfhyslfbeyqo4V9BBibcaniVbuc5FzKgBK3vtrqWiIx3ZKOb86TYGcA8wo2seb3iyDMygWGuucvXdgHbtwDWmiM8JsPEfIi9IBiAltI8yivsASORucQuLFudoUpIsXRbAa5Bel9F3j6KK2OpUCObQ'
-
-async function run(): Promise<void> {
-    const xibo = new Xibo({
-        url: xiboURL,
-        'client_id': xiboID,
-        'client_secret': xiboSecret,
-        'grant_type': 'client_credentials'
+    const xiboInst = await xb({
+        url: 'https://wide.ds-cloud.io/api',
+        client_id: 'ZadAUKOUuUOuozo1XEPrYW1vZz5hBwgO0ElzWxpa', 
+        client_secret: 'IKEAfUOtyvuBU6DNjkALSPJfQbdgsxatx4XHjVn60uPFIotAAOaiehvs5FIJf2QZ9xQhIrATxsHEj3XskhT9Cfw8xWkC8u84om4czWTvWNhTBBIre2efyvHLrI898NeKGA5FJTVeAQgi0vRRTLls4meogRy8cnRzDmKWIHPyr9d4igyrkk4DtI9e9Q4OaBu9LShEtHxW1bdVwc8dwbjNspURKf27aket0Xkr0sAB92gjaGizyhCsFPpGiatQHS'
     })
 
-    try {
-        await xibo.authenticate()
-        const versao = await xibo.about()
-        console.log('Xibo Version:', versao.version)
-
-        
-    } catch (e) {
-        console.log(e)
+    const context = {
+        pageSize: 5,
+        page: 1,
+        resolve: (msg: string): void => console.log(msg)
     }
-    context.resolve();
+
+    if (xiboInst) {
+        context.resolve(JSON.stringify(await getList(xiboInst, 'tags', context.pageSize, context.page)))
+    }
 }
-run();
+run()
+

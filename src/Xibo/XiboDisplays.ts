@@ -1,5 +1,5 @@
 import { Xibo } from './Xibo'
-import { XiboComponent, Criteria } from './XiboComponent'
+import { XiboComponent } from './XiboComponent'
 
 export interface DisplayInsert {
     displayId?: number;
@@ -81,7 +81,7 @@ export interface Display {
     bandwidthLimitFormatted: string;
 }
 
-interface DisplayCriteria extends Criteria {
+export interface DisplayCriteria {
     displayId?: number;
     displayGroupId?: number;
     display?: string;

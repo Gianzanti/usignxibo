@@ -66,16 +66,6 @@ interface TagCriteria extends Criteria {
     haveOptions?: 0 | 1;
 }
 
-const parseOptions = (data: Tag): Tag => {
-    if (data.options) {
-        return {
-            ...data,
-            options: data.options ? JSON.parse(data.options as unknown as string) : undefined
-        }
-    }
-    return data
-}
-
 export class Tags extends XiboComponent<Tag, TagCriteria, TagInsert> {
     public constructor(server: Xibo) {
         super({
@@ -84,11 +74,13 @@ export class Tags extends XiboComponent<Tag, TagCriteria, TagInsert> {
         })
     }
 
-    public async insert(content: TagInsert): Promise<Tag> {
-        return parseOptions(await super.insert(content))
-    }
-
-    public async update(id: number, content: Tag & TagInsert): Promise<Tag> {
-        return parseOptions(await super.update(id, content))
+    public parseData (data: Tag): Tag {
+        if (data.options) {
+            return {
+                ...data,
+                options: data.options ? JSON.parse(data.options as unknown as string) : undefined
+            }
+        }
+        return data
     }
 }

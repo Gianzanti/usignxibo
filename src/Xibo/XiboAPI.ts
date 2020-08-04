@@ -2,7 +2,7 @@ import axios, { AxiosInstance, AxiosPromise } from 'axios'
 import qs from 'qs'
 
 interface XiboErrorData {
-    [property: string]: string ;
+    [property: string]: string;
 }
 
 export interface XiboErrorResponse {
@@ -16,15 +16,6 @@ export interface XiboErrorResponse {
 export class XiboAPI {
     /** A private instance of AXIOS */
     private ax: AxiosInstance;
-
-    /** A model to set the token as a header in the
-     * current axios call
-     * */
-    // private headerToken = {
-    //     common: {
-    //         Authorization: ''
-    //     }
-    // };
 
     /**
      * Sets the default parameters for the current axios instance
@@ -62,18 +53,15 @@ export class XiboAPI {
     }
 
     public setToken(token: string): void {
-        // this.headerToken.common.Authorization = `Bearer ${token}`
         this.ax.defaults.headers.common.Authorization = `Bearer ${token}`
     }
 
     public getToken(): string {
-        // return this.headerToken.common.Authorization
         return this.ax.defaults.headers.common.Authorization
     }
 
     public removeToken(): void {
         delete this.ax.defaults.headers.common['Authorization']
-        // this.headerToken.common.Authorization = ''
     }
 
     /**
@@ -91,10 +79,8 @@ export class XiboAPI {
             envelope: 1
         }
         return this.ax({
-            // headers: this.headerToken,
             method: 'GET',
-            url,
-            params: envelope
+            url: `${url}?${qs.stringify(envelope, { encode: false, skipNulls: true })}`,
         })
     }
 
@@ -109,20 +95,16 @@ export class XiboAPI {
      * @returns Returns an Axios Promise of `TReturn`
      */
     public post<TReturn, TData = null>(url: string, data?: TData): AxiosPromise<TReturn> {
-        const envelope = {
-            envelope: 1
-        }
         return this.ax({
-            // headers: this.headerToken,
             method: 'POST',
             url,
-            params: envelope,
+            params: { envelope: 1 },
             data: qs.stringify(data, { arrayFormat: 'comma' }) || undefined
         })
     }
 
     /**
-     * Performs a clean POST action in the provided url with the
+     * Performs a clean POST (without envelope) action in the provided url with the
      * data of type TData. The expected response will be of
      * the type provided as TReturn
      * @typeParam TReturn - Defines the return type
@@ -132,7 +114,6 @@ export class XiboAPI {
      */
     public cleanPost<TReturn, TData = null>(url: string, data?: TData): AxiosPromise<TReturn & XiboErrorResponse> {
         return this.ax({
-            // headers: this.headerToken,
             method: 'POST',
             url,
             data: qs.stringify(data) || undefined
@@ -149,14 +130,10 @@ export class XiboAPI {
    * @param data - optional information to send in the PUT
    */
     public put<TReturn, TData>(url: string, data: TData): AxiosPromise<TReturn> {
-        const envelope = {
-            envelope: 1
-        }
         return this.ax({
-            // headers: this.headerToken,
             method: 'PUT',
             url,
-            params: envelope,
+            params: { envelope: 1 },
             data: qs.stringify(data, { arrayFormat: 'comma' }) || undefined
         })
     }
@@ -168,10 +145,9 @@ export class XiboAPI {
    */
     public delete<TReturn>(url: string): AxiosPromise<TReturn> {
         return this.ax({
-            // headers: this.headerToken,
             method: 'DELETE',
             url,
-            params: {envelope:1},
+            params: { envelope: 1 },
         })
     }
 }

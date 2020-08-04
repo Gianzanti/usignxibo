@@ -10,45 +10,91 @@ const clientURL = 'https://wide.ds-cloud.io/api'
 // const client_secret = context.constants.XiboClientSecret
 // const clientURL = context.constants.XiboURL
 
-const proxy = 'https://corsproxy.usign.io/'
-const url = (typeof window !== 'undefined') ? `${proxy}${clientURL}` : clientURL
-
 interface USignPage {
     data: Array<any>;
     page: number;
     pages: number;
 }
 
-const xibo = new Xibo({
-    url,
-    client_id,
-    client_secret,
-    grant_type: 'client_credentials'
-})
+interface xiboConnection {
+    url: string;
+    client_id: string;
+    client_secret: string;
+}
 
-export const getList = async (mediaType: keyof XiboDef): Promise<USignPage> => {
-    // console.log('Context:', JSON.stringify(context, null, 2))
-    // console.log('Constants:', JSON.stringify(context.constants, null, 2))
-    // console.log('MediaType:', mediaType)
+interface USignContext<TCriteria> {
+    pageSize: number;
+    page: number;
+    resolve(msg: string): void;
+    query?: TCriteria;
+    sorted?: any;
+}
+
+export const xb = async (conn: xiboConnection): Promise<Xibo | undefined> => {
+    const proxy = 'https://corsproxy.usign.io/'
+    const url = (typeof window !== 'undefined') ? `${proxy}${conn.url}` : conn.url
 
     try {
-        await xibo.authenticate()
-        // console.log('Xibo Version:', (await xibo.about()).version)
-        // console.log('Xibo CMS Time:', (await xibo.clock()).time)
-
-        const dados = await xibo[mediaType].list({
-            length: 5, 
-            start: 0
+        const xibo = new Xibo({
+            url,
+            client_id: conn.client_id,
+            client_secret: conn.client_secret,
+            grant_type: 'client_credentials'
         })
+        if (await xibo.authenticate()) {
+            return xibo
+        }
+    } catch (e) {
+        console.error(`${e.name}: ${e.message}`)
+    }
+    return undefined
+}
+
+export const getList = async <TCriteria>(xibo: Xibo, mediaType: keyof XiboDef, context: USignContext<TCriteria>, debug = false): Promise<USignPage> => {
+    try {
+        // await xibo.authenticate()
+        // console.log('Xibo CMS Time:', (await xibo.clock()).time)
+        if (debug) {
+            console.log('Xibo Version:', (await xibo.about()).version)
+        }
+
+
+        const length = context.pageSize
+        const start = (context.page - 1) * context.pageSize
+        let query = undefined
+        if (context.query) {
+            query = {
+                [Object.keys(context.query)[0] as string]: context.query[Object.keys(context.query)[0]]
+            }
+        }
+        let sort = undefined
+        if (context.sorted) {
+            const dir = context.sorted[Object.keys(context.sorted)[0]] === 1 ? 'asc' : 'desc'
+            sort = {
+                columns: [ null, { data: Object.keys(context.sorted)[0] } ],
+                order: [ null, { column: 1, dir: dir } ]
+            }
+        }
+        // envelope=1&columns[1][data]=clientType&order[1][column]=1&order[1][dir]=asc
+        const criteria = {
+            length, 
+            start,
+            ...query,
+            ...sort
+        }
+        console.log(JSON.stringify(criteria, null, 2))
+
+        const dados = await xibo[mediaType].list(criteria)
         
-        // console.log('Dados:', dados)
+        if (debug) {
+            console.log('Dados:', dados)
+        }
 
         return {
             data: dados.list,
             page: dados.currentPage,
             pages: dados.totalPages,
         }
-
 
     } catch (e) {
         console.error(`${e.name}: ${e.message}`)
@@ -58,12 +104,10 @@ export const getList = async (mediaType: keyof XiboDef): Promise<USignPage> => {
             pages: 0,
         }
     }
-
 }
 
 
-export const testTags = async (): Promise<void> => {
-    await xibo.authenticate()
+export const testTags = async (xibo: Xibo): Promise<void> => {
     let tags = await xibo.tags.list()
     console.log(JSON.stringify(tags, null, 2))
 
@@ -80,8 +124,8 @@ export const testTags = async (): Promise<void> => {
         options: ['some', 'options', 'comma', 'separated']
     }
     const inserted = await xibo.tags.insert(tagToInsert)
-    // console.log('Inserted:', inserted)
-    console.log('ID of new tag:', inserted.tagId)
+    console.log('Inserted:', inserted)
+    // console.log('ID of new tag:', inserted.tagId)
 
     const newTag = {
         ...inserted,
@@ -89,8 +133,8 @@ export const testTags = async (): Promise<void> => {
     }
 
     const toUpdate = await xibo.tags.update(newTag.tagId, newTag)
-    // console.log('Updated:', toUpdate)
-    console.log('ID of new tag:', toUpdate.tagId)
+    console.log('Updated:', toUpdate)
+    // console.log('ID of new tag:', toUpdate.tagId)
 
     // const deleted = await xibo.tags.remove(toUpdate.tagId)
     // console.log('Deleted:', deleted)

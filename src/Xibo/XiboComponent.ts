@@ -79,6 +79,10 @@ export abstract class XiboComponent<TReturn, TCriteria, TInsert> {
         this.server = props.server
     }
 
+    public parseData(data: TReturn): TReturn {
+        return data
+    }
+
     public async list(criteria?: TCriteria & Criteria, url?: string): Promise<XiboResponse<TReturn>> {
         //   const crit = criteria || { length: 10 }
         // TODO: ensure that the criteria.limit is lower than desired
@@ -107,7 +111,7 @@ export abstract class XiboComponent<TReturn, TCriteria, TInsert> {
         }
 
         const ret: XiboResponse<TReturn> = {
-            list: resp.data.data.data,
+            list: resp.data.data.data.map( dado => this.parseData(dado)),
             start: start,
             count: totalRecords,
             totalPages,
@@ -131,7 +135,7 @@ export abstract class XiboComponent<TReturn, TCriteria, TInsert> {
             throw new XiboError(resp.statusText)
         }
         // console.log(resp.data.message)
-        return resp.data.data
+        return this.parseData(resp.data.data)
     }
 
     public async update(id: number, content: TReturn & TInsert): Promise<TReturn> {
@@ -144,7 +148,7 @@ export abstract class XiboComponent<TReturn, TCriteria, TInsert> {
             throw new XiboError(resp.statusText)
         }
         // console.log(resp.data.message)
-        return resp.data.data
+        return this.parseData(resp.data.data)
     }
 
     public async remove(id: number): Promise<boolean> {
