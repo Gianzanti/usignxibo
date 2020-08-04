@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable no-undef */
-import { Xibo, getList, Media } from './Xibo'
-import { v4 as uuidv4 } from 'uuid'
+import { Xibo, getList, Media, testTags } from './Xibo'
+
 
 // const proxy = 'https://corsproxy.usign.io/'
 // let xiboURL = 'https://wide.ds-cloud.io/api'
@@ -12,56 +12,18 @@ import { v4 as uuidv4 } from 'uuid'
 // const xiboID = 'ZadAUKOUuUOuozo1XEPrYW1vZz5hBwgO0ElzWxpa'
 // const xiboSecret = 'IKEAfUOtyvuBU6DNjkALSPJfQbdgsxatx4XHjVn60uPFIotAAOaiehvs5FIJf2QZ9xQhIrATxsHEj3XskhT9Cfw8xWkC8u84om4czWTvWNhTBBIre2efyvHLrI898NeKGA5FJTVeAQgi0vRRTLls4meogRy8cnRzDmKWIHPyr9d4igyrkk4DtI9e9Q4OaBu9LShEtHxW1bdVwc8dwbjNspURKf27aket0Xkr0sAB92gjaGizyhCsFPpGiatQHS'
 
-const testTags = async (xibo: Xibo): Promise<void> => {
-        let tags = await xibo.tags.list()
-        console.log(JSON.stringify(tags, null, 2))
-
-        while (!tags.isLastPage) {
-            if (tags.nextPage) {
-                tags = await tags.nextPage()
-                console.log(JSON.stringify(tags, null, 2))
-            }
-        }
-
-        const tagToInsert = {
-            name: `TagByAPI_${uuidv4()}`,
-            isRequired: 0,
-            options: ['some', 'options', 'comma', 'separated']
-        }
-        const inserted = await xibo.tags.insert(tagToInsert)
-        // console.log('Inserted:', inserted)
-        console.log('ID of new tag:', inserted.tagId)
-
-        const newTag = {
-            ...inserted,
-            name: `ChangedByAPI_${uuidv4()}`
-        }
-
-        const toUpdate = await xibo.tags.update(newTag.tagId, newTag)
-        // console.log('Updated:', toUpdate)
-        console.log('ID of new tag:', toUpdate.tagId)
-
-        // const deleted = await xibo.tags.remove(toUpdate.tagId)
-        // console.log('Deleted:', deleted)
-}
 
 const run = async (): Promise<void> => {
-    // const xibo = new Xibo({
-    //     url: xiboURL,
-    //     'client_id': xiboID,
-    //     'client_secret': xiboSecret,
-    //     'grant_type': 'client_credentials'
-    // })
-
     try {
-        console.log(await getList('medias'))
+        await testTags()
+
+        // console.log(await getList('medias'))
 
 
         // await xibo.authenticate()
         // console.log('Xibo Version:', (await xibo.about()).version)
         // console.log('Xibo CMS Time:', (await xibo.clock()).time)
 
-        // // testTags(xibo)
 
         // const context = {
         //     pageSize: 5,
