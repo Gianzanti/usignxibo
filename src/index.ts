@@ -1,32 +1,97 @@
 /* eslint-disable no-undef */
 /* eslint-disable @typescript-eslint/camelcase */
-import { xb, getList, XiboSnippetVersion, DisplayCriteria } from './Xibo'
-import qs from 'qs'
+import { xb, getList, XiboSnippetVersion, addMedia, testTags } from './Xibo'
+import { USignResponse } from './Xibo/XiboComponent'
+import { Playlist } from './Xibo/XiboPlaylist'
+
+interface Saida {
+    widgetId: number;
+    duration: number;
+    displayOrder: string;
+    calculatedDuration: number;
+    name: string;
+    url: string;
+}
+
+const mountPlaylist = (pl: Playlist): Saida[] => {
+    console.log('Mounting saidas')
+    const saidas: Saida[] = []
+    
+    // console.log('Playlists:', pl.widgets)
+    pl.widgets.forEach( wg => {
+        // get the url
+        // console.log('Options:', wg.widgetOptions)
+        const [url] = wg.widgetOptions.filter( opt => opt.option === 'uri')
+        const urlDecoded = decodeURIComponent(url?.value || '')
+
+        const saida: Saida = {
+            widgetId: wg.widgetId,
+            duration: wg.duration,
+            displayOrder: wg.displayOrder.toString(),
+            calculatedDuration: wg.calculatedDuration,
+            name: wg.name,
+            url: urlDecoded
+        }
+
+        saidas.push(saida)
+    })
+
+    // console.log('Widgets Options:', pl.data[0].widgets[0].widgetOptions)
+
+
+    console.log('Saidas:', saidas)
+    return saidas
+}
+
 
 const run = async (): Promise<void> => {
     console.log('Snippet Version:', XiboSnippetVersion)
-    console.log(qs.parse('envelope=1&columns[1][data]=clientType&order[1][column]=1&order[1][dir]=asc'))
-
     const xiboInst = await xb({
         url: 'https://wide.ds-cloud.io/api',
         client_id: 'ZadAUKOUuUOuozo1XEPrYW1vZz5hBwgO0ElzWxpa', 
         client_secret: 'IKEAfUOtyvuBU6DNjkALSPJfQbdgsxatx4XHjVn60uPFIotAAOaiehvs5FIJf2QZ9xQhIrATxsHEj3XskhT9Cfw8xWkC8u84om4czWTvWNhTBBIre2efyvHLrI898NeKGA5FJTVeAQgi0vRRTLls4meogRy8cnRzDmKWIHPyr9d4igyrkk4DtI9e9Q4OaBu9LShEtHxW1bdVwc8dwbjNspURKf27aket0Xkr0sAB92gjaGizyhCsFPpGiatQHS'
     })
 
-    const context = {
-        pageSize: 5,
-        page: 1,
-        resolve: (msg: string): void => console.log(msg),
-        query: {
-            clientType: 'android'
-          },
-        sorted: {
-            displayId: 1
-        }, 
-    }
+    // const context = {
+    //     pageSize: 5,
+    //     page: 1,
+    //     resolve: (msg: string): void => console.log(msg),
+    //     query: {
+    //         clientType: 'android'
+    //       },
+    //     sorted: {
+    //         displayId: 1
+    //     }, 
+    // }
 
     if (xiboInst) {
-        context.resolve(JSON.stringify(await getList<DisplayCriteria>(xiboInst, 'displays', context), null, 2))
+        // const dados = await xiboInst?.displaygroups.list({length: 100})
+        // console.log(dados)
+        // await testTags(xiboInst)
+
+
+        // exibir playlists
+        const { data } = await xiboInst?.displaygroups.list({displayGroup: 'CSN'})
+        const segmentacao = data[0]
+        if (segmentacao) {
+            const sch = await xiboInst.schedules.listEvents({displayGroupId: segmentacao.displayGroupId, date: '2020-08-14 00:00:00'})
+            const layoutId = sch.data[0].layoutId
+            if (layoutId) {
+                const lo = await xiboInst.layouts.list({layoutId: layoutId, embed: 'regions,playlists,widgets'})
+                const layout = lo.data[0]
+                // console.log('Regions:', layout.regions)
+                // console.log('Widgets:', layout.regions[0].regionPlaylist.widgets)
+                // console.log('Widgets Options:', layout.regions[0].regionPlaylist.widgets[0].widgetOptions)
+
+                // locate subplaylist id
+                const sub = layout.regions[0].regionPlaylist.widgets[0].widgetOptions.filter( opt => opt.option === 'subPlaylistIds')
+                const [subID] = JSON.parse(sub[0].value)
+                const pl = await xiboInst.playlists.list({playlistId: subID, embed: 'widgets'})
+                // console.log('Playlists:', pl.data[0].widgets)
+                // console.log('Widgets Options:', pl.data[0].widgets[0].widgetOptions)
+                mountPlaylist(pl.data[0])
+            }
+        }
     }
 }
 run()

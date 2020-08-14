@@ -1,6 +1,6 @@
 import { Region } from './XiboRegion'
 import { Tag } from './XiboTags'
-import { XiboComponent, XiboCMSResponse } from './XiboComponent'
+import { XiboComponent, CMSResponse } from './XiboComponent'
 import { Xibo } from './Xibo'
 import { XiboError } from './XiboError'
 
@@ -126,7 +126,7 @@ export class Layouts extends XiboComponent<Layout, LayoutCriteria, null> {
 
     public async checkout(layoutId: number): Promise<Layout> {
         const endPoint = `${this.endpoint}/checkout/${layoutId}`
-        const resp = await this.server.api.put<XiboCMSResponse<Layout>, null>(endPoint, null)
+        const resp = await this.server.api.put<CMSResponse<Layout>, null>(endPoint, null)
         if (!resp.data.success) {
             if (resp.data.message) {
                 throw new XiboError(resp.data.message)
@@ -139,12 +139,12 @@ export class Layouts extends XiboComponent<Layout, LayoutCriteria, null> {
 
     public async getDraftLayout(parentId: number): Promise<Layout> {
         const lista = await super.list({parentId, embed: 'regions,playlists,widgets'})
-        return lista.list[0]
+        return lista.data[0]
     }
 
     public async publish(layoutId: number): Promise<Layout> {
         const endPoint = `${this.endpoint}/publish/${layoutId}`
-        const resp = await this.server.api.put<XiboCMSResponse<Layout>, Publish>(endPoint, {publishNow: 1})
+        const resp = await this.server.api.put<CMSResponse<Layout>, Publish>(endPoint, {publishNow: 1})
         if (!resp.data.success) {
             if (resp.data.message) {
                 throw new XiboError(resp.data.message)

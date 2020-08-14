@@ -1,4 +1,4 @@
-import { XiboComponent, XiboCMSResponse, XiboCMSData } from './XiboComponent'
+import { XiboComponent, CMSResponse, CMSData } from './XiboComponent'
 import { Xibo } from '.'
 import { XiboError } from './XiboError'
 
@@ -55,7 +55,7 @@ export class Permissions extends XiboComponent<Permission, PermissionCriteria, n
 
     public async get(entityType: string, objectId: number): Promise<void> {
         const endPoint = `${this.endpoint}/${entityType}/${objectId}`
-        const resp = await this.server.api.get<XiboCMSResponse<XiboCMSData<Permission>>>(endPoint)
+        const resp = await this.server.api.get<CMSResponse<CMSData<Permission>>>(endPoint)
         if (!resp.data.success) {
             if (resp.data.message) {
                 throw new XiboError(resp.data.message)
@@ -68,7 +68,7 @@ export class Permissions extends XiboComponent<Permission, PermissionCriteria, n
 
     public async set(entityType: string, objectId: number): Promise<void> {
         const endPoint = `${this.endpoint}/${entityType}/${objectId}`
-        const resp = await this.server.api.post<XiboCMSResponse<XiboCMSData<Permission>>>(endPoint)
+        const resp = await this.server.api.post<CMSResponse<CMSData<Permission>>>(endPoint)
         if (!resp.data.success) {
             if (resp.data.message) {
                 throw new XiboError(resp.data.message)

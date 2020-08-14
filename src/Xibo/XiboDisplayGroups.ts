@@ -36,7 +36,9 @@ export interface DisplayGroup {
     userId: number;
 
     /** Tags associated with this DisplayGroup */
-    tags: Tag[];
+    tags: string;
+
+    tagValues: string;
 
     /** The display bandwidth limit */
     bandwidthLimit: number;

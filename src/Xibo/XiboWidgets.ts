@@ -47,4 +47,6 @@ export interface Widgets {
     module: string;
     /** The name of the Playlist this Widget is on */
     playlist: string;
+
+    name: string;
 }

@@ -4,11 +4,12 @@ import { Tags } from './XiboTags'
 import { DisplayGroups } from './XiboDisplayGroups'
 import { Displays } from './XiboDisplays'
 import { Schedules } from './XiboSchedules'
-import { XiboCMSResponse } from './XiboComponent'
+import { CMSResponse } from './XiboComponent'
 import { Playlists } from './XiboPlaylist'
 import { Layouts } from './XiboLayout'
 import { Medias } from './XiboMedia'
 import { Permissions } from './XiboPermission'
+import { AxiosResponse } from 'axios'
 
 interface XiboCredentials {
     /** Client ID provided by Application settings in Xibo Server */
@@ -40,9 +41,6 @@ interface XiboAuth {
 interface XiboAbout {
     /** Xibo server version */
     version: string;
-
-    /** not used */
-    sourceUrl: string;
 }
 
 interface XiboClock {
@@ -61,8 +59,8 @@ export interface XiboDef {
 }
 
 export class Xibo implements XiboDef {
-    public api: XiboAPI;
     private credentials: XiboCredentials;
+    public api: XiboAPI;
     public tags: Tags;
     public displaygroups: DisplayGroups
     public displays: Displays
@@ -93,50 +91,53 @@ export class Xibo implements XiboDef {
         if (this.api.getToken()) return true
 
         const endPoint = '/authorize/access_token'
-        const resp = await this.api.cleanPost<
+        
+        const resp = await this.api.postNoEnvelope<
             XiboAuth,
             XiboCredentials
         >(endPoint, this.credentials)
 
-        if (resp.status !== 200) {
-            if (resp.data.error && resp.data.error.message) {
-                throw new XiboError(resp.data.error.message)
-            }
-            throw new XiboError(resp.statusText)
-        }
-
-        if (resp.data.token_type === 'Bearer') {
+        if (resp.status === 200) {
             this.api.setToken(resp.data.access_token)
             return true
         }
-
-        throw new XiboError('Invalid token')
+        this.threatError(resp)
     }
 
     /**
      * Brings information about this API, such as version code
-     * 
      */
     public async about(): Promise<XiboAbout> {
-        return await this.getData('/about')
+        return await this.requestGet('/about')
     }
 
     /**
      * Brings the current CMS time
-     * 
      */
     public async clock(): Promise<XiboClock> {
-        return await this.getData('/clock')
+        return await this.requestGet('/clock')
     }
 
-    async getData<T>(endPoint: string): Promise<T> {
-        const resp = await this.api.get<XiboCMSResponse<T>>(endPoint)
-        if (!resp.data.success) {
-            if (resp.data.message) {
-                throw new XiboError(resp.data.message)
-            }
-            throw new XiboError(resp.statusText)
-        }
-        return resp.data.data
+    /**
+     * Request api to perform a get in the endPoint supplied
+     * 
+     * @typeParam R - the type of Response expected
+     * 
+     * @param endPoint - the endPoint address to request a get
+     */
+    private async requestGet<R>(endPoint: string): Promise<R> {
+        const resp = await this.api.get<CMSResponse<R>>(endPoint)
+        if (resp.data.success) return resp.data.data
+        this.threatError(resp)
+    }
+
+    /**
+     * Throw errors based on the axios response
+     * 
+     * @param resp - The failed axios response 
+     */
+    private threatError(resp: AxiosResponse): never {
+        if (resp.data.message) throw new XiboError(resp.data.message)
+        throw new XiboError(resp.statusText)
     }
 }

@@ -1,6 +1,6 @@
 import { Tag } from './XiboTags'
 import { Widgets } from './XiboWidgets'
-import { XiboComponent, XiboCMSResponse } from './XiboComponent'
+import { XiboComponent, CMSResponse } from './XiboComponent'
 
 import { Xibo } from './Xibo'
 import { XiboError } from './XiboError'
@@ -58,10 +58,13 @@ export interface Playlist {
 export interface PlaylistCriteria {
     //The ID of this Playlist,  
     playlistId?: number;
+
+    embed?: 'widgets';
 }
 interface MediaInsert {
     'media[]': string;
     duration?: number;
+    displayOrder?: number;
 }
 
 export class Playlists extends XiboComponent<Playlist, PlaylistCriteria, null> {
@@ -72,10 +75,10 @@ export class Playlists extends XiboComponent<Playlist, PlaylistCriteria, null> {
         })
     }
 
-    public async addMedia(playlistId: number, mediaId: number): Promise<Playlist> {
+    public async addMedia(playlistId: number, mediaId: number, posicion: number | undefined = undefined): Promise<Playlist> {
         const endPoint = `${this.endpoint}/library/assign/${playlistId}`
-        const arrMedias: MediaInsert = {'media[]': mediaId.toString()}
-        const resp = await this.server.api.post<XiboCMSResponse<Playlist>, MediaInsert>(endPoint, arrMedias)
+        const arrMedias: MediaInsert = {'media[]': mediaId.toString(), displayOrder: posicion}
+        const resp = await this.server.api.post<CMSResponse<Playlist>, MediaInsert>(endPoint, arrMedias)
         if (!resp.data.success) {
             if (resp.data.message) {
                 throw new XiboError(resp.data.message)

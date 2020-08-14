@@ -1,5 +1,5 @@
 import { Tag } from './XiboTags'
-import { XiboComponent, XiboCMSResponse } from './XiboComponent'
+import { XiboComponent, CMSResponse } from './XiboComponent'
 import { Xibo } from './Xibo'
 import { XiboError } from './XiboError'
 
@@ -136,7 +136,7 @@ export class Medias extends XiboComponent<Media, MediaCriteria, MediaInsert> {
 
     public async insert(content: MediaInsert): Promise<Media> {
         const endPoint = '/library/uploadUrl'
-        const resp = await this.server.api.post<XiboCMSResponse<Media>, MediaInsert>(endPoint, content)
+        const resp = await this.server.api.post<CMSResponse<Media>, MediaInsert>(endPoint, content)
         if (!resp.data.success) {
             if (resp.data.message) {
                 throw new XiboError(resp.data.message)

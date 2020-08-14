@@ -1,6 +1,6 @@
 {
   "name": "xibo",
-  "version": "0.0.13",
+  "version": "0.0.19",
   "main": "index.js",
   "license": "MIT",
   "scripts": {

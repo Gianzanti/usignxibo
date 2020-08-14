@@ -1,25 +1,24 @@
+/* eslint-disable no-undef */
 import { Xibo } from './Xibo'
 import { XiboError } from './XiboError'
-/**
- * Interface used to define a criteria for filtering/searching/getting
- * a list of Scala components
- */
-export interface Criteria {
-    /** Limit search result. Default is 10 items */
-    length?: number;
+import { AxiosResponse } from 'axios'
 
+export interface Pagination {
     /** The first index to perform the search. Use for pagination */
     start?: number;
+
+    /** Limit search result. Default is 10 items */
+    length?: number;
 }
 
-export interface XiboCMSData<T> {
+export interface CMSData<T> {
     draw: number;
     recordsTotal: number;
     recordsFiltered: number;
     data: T[];
 }
 
-export interface XiboCMSResponse<T>{
+export interface CMSResponse<T>{
     grid: boolean;
     success: boolean;
     status: number;
@@ -28,146 +27,179 @@ export interface XiboCMSResponse<T>{
     data: T;
 }
 
-export interface XiboResponse<T> {
+export interface USignResponse<T> {
     /** List of items of type T */
-    list: T[];
-
-    /** Offset of the results. It's the same value of the offset passed on
-     * from request parameter
-     */
-    start: number;
-
-    /** Total records without any filtering/limits */
-    count: number;
-
+    data: T[];
     /** Shows the current page based on limit items defined on criteria */
-    currentPage: number;
-
+    page: number;
     /** Shows the totalPages of items, based on limit */
-    totalPages: number;
-
-    /** Defines if current page is the last page of the set */
-    isLastPage: boolean;
-
-    /** A method to navigate between pages of the resultset */
-    nextPage?: () => Promise<XiboResponse<T>>;
+    pages: number;
+    /** totalRecords */
+    total: number;
 }
 
 export interface XiboComponentDTO {
-    endPoint: string;
+    /** An instace of Xibo Server connection */
     server: Xibo;
+    /** the default endPoint for current component */
+    endPoint: string;
 }
 
 /**
  * An abstract class to share methods and properties between
  * all the Xibo components available.
  * To instantiate it is necessary to supply 3 types:
- * @typeparam TReturn - Defines the return type of the get, list, insert and update methods
- * @typeparam TCriteria - Defines the criterias to search component
- * @typeparam TInsert - Defines the type of the argument for the insert method
+ * @typeparam R - Defines the return type of the get, list, insert and update methods
+ * @typeparam C - Defines the criterias to search component
+ * @typeparam I - Defines the type of the argument for the insert method
  */
-export abstract class XiboComponent<TReturn, TCriteria, TInsert> {
-    // /** Maximun limit allowed on Mjolnir */
-    // public static readonly limitTotal: number = 100;
+export abstract class XiboComponent<R, C, I> {
 
     protected server: Xibo;
 
     protected endpoint: string;
 
-    public constructor(props: XiboComponentDTO) {
-        this.endpoint = props.endPoint
-        this.server = props.server
+    public constructor({server, endPoint}: XiboComponentDTO) {
+        this.server = server
+        this.endpoint = endPoint
     }
 
-    public parseData(data: TReturn): TReturn {
+    /**
+     * Some Xibo API methods returns data that require
+     * transformations to be used. This method must be overided 
+     * to allow correct transformations, otherwise it just
+     * returns the data supplied
+     * 
+     * @param data - the data to be transformed
+     */
+    protected transformData(data: R): R {
         return data
     }
 
-    public async list(criteria?: TCriteria & Criteria, url?: string): Promise<XiboResponse<TReturn>> {
+    /**
+     * Mount the response to uSign, in the desired format
+     * 
+     * @param resp - a response from axios
+     * @param offset - the current data offset
+     * @param pageSize - the current pageSize
+     */
+    private mountUSignResponse(resp: CMSResponse<CMSData<R>>, offset = 0, pageSize = 10): USignResponse<R> {
+        const totalRecords = resp.data.recordsFiltered
+        const currentRecords = resp.data.data.length
+        const page = Math.ceil((offset + currentRecords) / pageSize)
+        const pages = Math.ceil(totalRecords / pageSize)
+        return {
+            data: resp.data.data.map( dado => this.transformData(dado)),
+            pages,
+            page,
+            total: totalRecords
+        }
+    }
+
+    /**
+     * Request api to perform a get in the supplied endPoint
+     * 
+     * All responses from Xibo are expected to be of type
+     * CMSResponse because it always has the envelope mode 
+     * enabled. The data in the CMSResponse if of type R
+     * 
+     * The return is an object of type USignResponse<R>
+     * 
+     * @param criteria - the criteria to search the data
+     * @param endPoint - the default endPoint is defined in the constructor
+     *                   but if needed could be passed another
+     */
+    public async list(criteria?: C & Pagination, endPoint?: string): Promise<USignResponse<R>> {
         //   const crit = criteria || { length: 10 }
         // TODO: ensure that the criteria.limit is lower than desired
-        const ep = url || this.endpoint
-        const resp = await this.server.api.get<XiboCMSResponse<XiboCMSData<TReturn>>, TCriteria & Criteria>(ep, criteria)
-        if (!resp.data.success) {
-            if (resp.data.message) {
-                throw new XiboError(resp.data.message)
+        const ep = endPoint || this.endpoint
+        const resp = await this.server.api.get<CMSResponse<CMSData<R>>, C & Pagination>(ep, criteria)
+        if (resp.data.success) {
+            if (resp.data.grid) {
+                return this.mountUSignResponse(resp.data, criteria && criteria.start, criteria && criteria.length)
+            } else {
+                // return new format
+                console.log('Schedule:', JSON.stringify(resp.data, null, 2))
+                return this.mountScheduleResponse(resp.data, criteria && criteria.start, criteria && criteria.length)
             }
-            throw new XiboError(resp.statusText)
         }
-
-        const totalRecords = resp.data.data.recordsFiltered
-        const currentRecords = resp.data.data.data.length
-        const start = (criteria && criteria.start) ? criteria.start : 0
-        const limit = (criteria && criteria.length) ? criteria.length : 10
-
-        const currentPage = Math.ceil((start + currentRecords) / limit)
-        const totalPages = Math.ceil(totalRecords / limit)
-        const isLastPage = totalPages === currentPage
-        let newCriteria: TCriteria & Criteria
-        if (criteria) {
-            newCriteria = criteria
-            newCriteria.start = criteria.start || 0
-            newCriteria.start = newCriteria.start + (newCriteria.length ? newCriteria.length : 10)
-        }
-
-        const ret: XiboResponse<TReturn> = {
-            list: resp.data.data.data.map( dado => this.parseData(dado)),
-            start: start,
-            count: totalRecords,
-            totalPages,
-            currentPage,
-            isLastPage,
-            nextPage: !isLastPage
-                ? async (): Promise<XiboResponse<TReturn>> => {
-                    return this.list(newCriteria)
-                }
-                : undefined
-        }
-        return ret
+        this.threatError(resp)
     }
 
-    public async insert(content: TInsert): Promise<TReturn> {
-        const resp = await this.server.api.post<XiboCMSResponse<TReturn>, TInsert>(this.endpoint, content)
-        if (!resp.data.success) {
-            if (resp.data.message) {
-                throw new XiboError(resp.data.message)
-            }
-            throw new XiboError(resp.statusText)
+    /**
+     * Request api to perform an insert in the supplied endPoint
+     * 
+     * All responses from Xibo are expected to be of type
+     * CMSResponse because it always has the envelope mode 
+     * enabled. The data in the CMSResponse if of type R
+     * 
+     * The return is an object of type R
+     * 
+     * @param content - the component data to insert
+     */
+    public async insert(content: I): Promise<R> {
+        const resp = await this.server.api.post<CMSResponse<R>, I>(this.endpoint, content)
+        if (resp.data.success) {
+            console.log('Insert:', resp.data.message)
+            return this.transformData(resp.data.data)
         }
-        // console.log(resp.data.message)
-        return this.parseData(resp.data.data)
+        this.threatError(resp)
     }
 
-    public async update(id: number, content: TReturn & TInsert): Promise<TReturn> {
+
+    /**
+     * Request api to perform an update in the supplied endPoint
+     * 
+     * All responses from Xibo are expected to be of type
+     * CMSResponse because it always has the envelope mode 
+     * enabled. The data in the CMSResponse if of type R
+     * 
+     * The return is an object of type R
+     * 
+     * @param id - the component ID to update
+     * @param content - the complete component data to update, XiboCMS
+     *                  always expect all data to update the component
+     *                  not only the data updated
+     */
+    public async update(id: number, content: R & I): Promise<R> {
         const url = `${this.endpoint}/${id}`
-        const resp = await this.server.api.put<XiboCMSResponse<TReturn>, TInsert>(url, content)
-        if (!resp.data.success) {
-            if (resp.data.message) {
-                throw new XiboError(resp.data.message)
-            }
-            throw new XiboError(resp.statusText)
+        const resp = await this.server.api.put<CMSResponse<R>, I>(url, content)
+        if (resp.data.success) {
+            console.log('Update:', resp.data.message)
+            return this.transformData(resp.data.data)
         }
-        // console.log(resp.data.message)
-        return this.parseData(resp.data.data)
+        this.threatError(resp)
     }
 
-    public async remove(id: number): Promise<boolean> {
+
+    /**
+     * Request api to perform a delete in the supplied endPoint
+     * 
+     * All responses from Xibo are expected to be of type
+     * CMSResponse because it always has the envelope mode 
+     * enabled. The data in the CMSResponse if of type R
+     * 
+     * @param id - the component ID to remove
+     */
+    public async remove(id: number): Promise<void> {
         const url = `${this.endpoint}/${id}`
-        const resp = await this.server.api.delete<XiboCMSResponse<TReturn>>(url)
-        if (!resp.data.success) {
-            if (resp.data.message) {
-                throw new XiboError(resp.data.message)
-            }
-            throw new XiboError(resp.statusText)
+        const resp = await this.server.api.delete<CMSResponse<R>>(url)
+        if (resp.data.success) {
+            console.log('Remove: ', resp.data.message)
+            return
         }
-        // console.log(resp.data.message)
-        return true
+        this.threatError(resp)
+    }
+
+    /**
+     * Throw errors based on the axios response
+     * 
+     * @param resp - The failed axios response 
+     */
+    protected threatError(resp: AxiosResponse): never {
+        console.log('Error:', resp.data.message)
+        if (resp.data.message) throw new XiboError(resp.data.message)
+        throw new XiboError(resp.statusText)
     }
 }
 
-/* Sorting process
-* ?columns[][name]=layout
-You then provide an order parameter, which contains a set of sort orders,
-referencing the keys in the columns parameter - e.g.
-&order[][column]=1&order[][dir]=desc
-**/

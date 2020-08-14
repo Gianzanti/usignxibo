@@ -2,6 +2,8 @@
 /* eslint-disable @typescript-eslint/camelcase */
 import { Xibo, XiboDef } from './Xibo'
 import { v4 as uuidv4 } from 'uuid'
+import { Layout } from './XiboLayout'
+import { TagInsert } from './XiboTags'
 
 const client_id = 'ZadAUKOUuUOuozo1XEPrYW1vZz5hBwgO0ElzWxpa'
 const client_secret = 'IKEAfUOtyvuBU6DNjkALSPJfQbdgsxatx4XHjVn60uPFIotAAOaiehvs5FIJf2QZ9xQhIrATxsHEj3XskhT9Cfw8xWkC8u84om4czWTvWNhTBBIre2efyvHLrI898NeKGA5FJTVeAQgi0vRRTLls4meogRy8cnRzDmKWIHPyr9d4igyrkk4DtI9e9Q4OaBu9LShEtHxW1bdVwc8dwbjNspURKf27aket0Xkr0sAB92gjaGizyhCsFPpGiatQHS'
@@ -16,21 +18,27 @@ interface USignPage {
     pages: number;
 }
 
-interface xiboConnection {
+interface XiboConnection {
     url: string;
     client_id: string;
     client_secret: string;
 }
 
-interface USignContext<TCriteria> {
+// interface USignContext<TCriteria> {
+//     pageSize: number;
+//     page: number;
+//     query?: TCriteria;
+//     sorted?: any;
+// }
+
+interface USignContext {
     pageSize: number;
     page: number;
-    resolve(msg: string): void;
-    query?: TCriteria;
+    query?: any;
     sorted?: any;
 }
 
-export const xb = async (conn: xiboConnection): Promise<Xibo | undefined> => {
+export const xb = async (conn: XiboConnection): Promise<Xibo | undefined> => {
     const proxy = 'https://corsproxy.usign.io/'
     const url = (typeof window !== 'undefined') ? `${proxy}${conn.url}` : conn.url
 
@@ -50,7 +58,7 @@ export const xb = async (conn: xiboConnection): Promise<Xibo | undefined> => {
     return undefined
 }
 
-export const getList = async <TCriteria>(xibo: Xibo, mediaType: keyof XiboDef, context: USignContext<TCriteria>, debug = false): Promise<USignPage> => {
+export const getList = async (xibo: Xibo, mediaType: keyof XiboDef, context: USignContext, debug = false): Promise<USignPage> => {
     try {
         // await xibo.authenticate()
         // console.log('Xibo CMS Time:', (await xibo.clock()).time)
@@ -58,9 +66,6 @@ export const getList = async <TCriteria>(xibo: Xibo, mediaType: keyof XiboDef, c
             console.log('Xibo Version:', (await xibo.about()).version)
         }
 
-
-        const length = context.pageSize
-        const start = (context.page - 1) * context.pageSize
         let query = undefined
         if (context.query) {
             query = {
@@ -77,12 +82,12 @@ export const getList = async <TCriteria>(xibo: Xibo, mediaType: keyof XiboDef, c
         }
         // envelope=1&columns[1][data]=clientType&order[1][column]=1&order[1][dir]=asc
         const criteria = {
-            length, 
-            start,
+            pageSize: context.pageSize,
+            offset: ((context.page - 1) * context.pageSize),
             ...query,
             ...sort
         }
-        console.log(JSON.stringify(criteria, null, 2))
+        // console.log(JSON.stringify(criteria, null, 2))
 
         const dados = await xibo[mediaType].list(criteria)
         
@@ -91,9 +96,9 @@ export const getList = async <TCriteria>(xibo: Xibo, mediaType: keyof XiboDef, c
         }
 
         return {
-            data: dados.list,
-            page: dados.currentPage,
-            pages: dados.totalPages,
+            data: dados.data,
+            page: dados.page,
+            pages: dados.pages,
         }
 
     } catch (e) {
@@ -106,26 +111,17 @@ export const getList = async <TCriteria>(xibo: Xibo, mediaType: keyof XiboDef, c
     }
 }
 
-
 export const testTags = async (xibo: Xibo): Promise<void> => {
-    let tags = await xibo.tags.list()
+    const tags = await xibo.tags.list()
     console.log(JSON.stringify(tags, null, 2))
 
-    while (!tags.isLastPage) {
-        if (tags.nextPage) {
-            tags = await tags.nextPage()
-            console.log(JSON.stringify(tags, null, 2))
-        }
-    }
-
-    const tagToInsert = {
+    const tagToInsert: TagInsert = {
         name: `TagByAPI_${uuidv4()}`,
         isRequired: 0,
         options: ['some', 'options', 'comma', 'separated']
     }
     const inserted = await xibo.tags.insert(tagToInsert)
-    console.log('Inserted:', inserted)
-    // console.log('ID of new tag:', inserted.tagId)
+    // console.log('Inserted:', inserted)
 
     const newTag = {
         ...inserted,
@@ -133,9 +129,42 @@ export const testTags = async (xibo: Xibo): Promise<void> => {
     }
 
     const toUpdate = await xibo.tags.update(newTag.tagId, newTag)
-    console.log('Updated:', toUpdate)
-    // console.log('ID of new tag:', toUpdate.tagId)
+    // console.log('Updated:', toUpdate)
 
-    // const deleted = await xibo.tags.remove(toUpdate.tagId)
+    await xibo.tags.remove(toUpdate.tagId)
     // console.log('Deleted:', deleted)
+}
+
+export const addMedia = async(xibo: Xibo, layoutId: number, plPosition?: number): Promise<void> => {
+    let theLayout: Layout
+
+    const lo = await xibo.layouts.list({layoutId: layoutId, embed: 'regions,playlists,widgets'})
+    theLayout = lo.data[0]
+    if (theLayout.publishedStatus !== 'Draft') {
+        // checkout the layout
+        theLayout = await xibo.layouts.checkout(theLayout.layoutId)
+    } else {
+        // get the real draft layout
+        theLayout = await xibo.layouts.getDraftLayout(theLayout.layoutId)
+    }
+    console.log(theLayout)
+
+    // console.log('Regions:', chk.list[0].regions)
+    // console.log('Widgets:', chk.list[0].regions[0].regionPlaylist.widgets)
+    // console.log('Widgets Options:', chk.list[0].regions[0].regionPlaylist.widgets[0].widgetOptions)
+
+    const plID = theLayout.regions[0].regionPlaylist.playlistId
+    // console.log('PlaylistID:', plID)
+
+    await xibo.playlists.addMedia(plID, 40, 1)
+    await xibo.playlists.addMedia(plID, 37, 0)
+    await xibo.playlists.addMedia(plID, 34, 2)
+    await xibo.playlists.addMedia(plID, 35, 4)
+    await xibo.playlists.addMedia(plID, 38, 1)
+
+    // console.log('Teste:', teste2)
+
+    const teste3 = await xibo.layouts.publish(theLayout.parentId)
+    console.log('Publish: ', teste3)
+
 }

@@ -22,3 +22,30 @@ const run = async (): Promise<void> => {
 }
 run()
 
+
+
+// import { xb, getList, DisplayCriteria, XiboSnippetVersion } from 'Xibo'
+// const run = async (): Promise<void> => {
+//     console.log('Snippet Version:', XiboSnippetVersion)
+//     // console.log('Context:', JSON.stringify(context, null, 2))
+//     // console.log('Constants:', JSON.stringify(context.constants, null, 2))
+
+//     const xiboInst = await xb({
+//         url: context.constants.XiboURL,
+//         client_id: context.constants.XiboClientID, 
+//         client_secret: context.constants.XiboClientSecret
+//     })
+
+//     const ctx = {
+//         pageSize: context.pageSize,
+//         page: context.page,
+//         query: context.query,
+//         sorted: context.sorted
+//     }
+//     console.log('CTX:', ctx)
+
+//     if (xiboInst) {
+//         context.resolve(await getList<DisplayCriteria>(xiboInst, 'displays', ctx, true));
+//     }
+// }
+// run();
