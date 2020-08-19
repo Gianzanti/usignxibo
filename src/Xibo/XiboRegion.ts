@@ -36,7 +36,7 @@ export interface Region {
     //An array of Permissions,
     permissions: Permission[];
 
-    //A read-only estimate of this Regions's total duration in seconds. This is valid when the parent layout status is 1 or 2.,
+    //A read-only estimate of this region's total duration in seconds. This is valid when the parent layout status is 1 or 2.,
     duration: number;
 
     //This Regions Playlist - null if getPlaylist() has not been called.,

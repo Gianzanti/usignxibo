@@ -101,10 +101,10 @@ export interface User {
     /** The two factor type id */
     twoFactorTypeId: number;
 
-    /** Two Factor authorisation shared secret for this user */
+    /** Two Factor authorization shared secret for this user */
     twoFactorSecret: string;
 
-    /** Two Factor authorisation recovery codes */
+    /** Two Factor authorization recovery codes */
     twoFactorRecoveryCodes: string[];
 
     /** Should we show content added by standard users in relevant grids (1) or content added by the DOOH user? (2). Super admins have an option to change this in their User profile.  */

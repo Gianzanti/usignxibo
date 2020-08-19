@@ -39,7 +39,7 @@ export interface USignResponse<T> {
 }
 
 export interface XiboComponentDTO {
-    /** An instace of Xibo Server connection */
+    /** An instance of Xibo Server connection */
     server: Xibo;
     /** the default endPoint for current component */
     endPoint: string;
@@ -50,7 +50,7 @@ export interface XiboComponentDTO {
  * all the Xibo components available.
  * To instantiate it is necessary to supply 3 types:
  * @typeparam R - Defines the return type of the get, list, insert and update methods
- * @typeparam C - Defines the criterias to search component
+ * @typeparam C - Defines the criteria to search component
  * @typeparam I - Defines the type of the argument for the insert method
  */
 export abstract class XiboComponent<R, C, I> {
@@ -66,7 +66,7 @@ export abstract class XiboComponent<R, C, I> {
 
     /**
      * Some Xibo API methods returns data that require
-     * transformations to be used. This method must be overided 
+     * transformations to be used. This method must be override 
      * to allow correct transformations, otherwise it just
      * returns the data supplied
      * 
@@ -117,10 +117,6 @@ export abstract class XiboComponent<R, C, I> {
         if (resp.data.success) {
             if (resp.data.grid) {
                 return this.mountUSignResponse(resp.data, criteria && criteria.start, criteria && criteria.length)
-            } else {
-                // return new format
-                console.log('Schedule:', JSON.stringify(resp.data, null, 2))
-                return this.mountScheduleResponse(resp.data, criteria && criteria.start, criteria && criteria.length)
             }
         }
         this.threatError(resp)
@@ -137,8 +133,9 @@ export abstract class XiboComponent<R, C, I> {
      * 
      * @param content - the component data to insert
      */
-    public async insert(content: I): Promise<R> {
-        const resp = await this.server.api.post<CMSResponse<R>, I>(this.endpoint, content)
+    public async insert(content: I, endPoint?: string): Promise<R> {
+        const ep = endPoint || this.endpoint
+        const resp = await this.server.api.post<CMSResponse<R>, I>(ep, content)
         if (resp.data.success) {
             console.log('Insert:', resp.data.message)
             return this.transformData(resp.data.data)
@@ -161,9 +158,9 @@ export abstract class XiboComponent<R, C, I> {
      *                  always expect all data to update the component
      *                  not only the data updated
      */
-    public async update(id: number, content: R & I): Promise<R> {
+    public async update(id: number, content: R | I): Promise<R> {
         const url = `${this.endpoint}/${id}`
-        const resp = await this.server.api.put<CMSResponse<R>, I>(url, content)
+        const resp = await this.server.api.put<CMSResponse<R>, R | I>(url, content)
         if (resp.data.success) {
             console.log('Update:', resp.data.message)
             return this.transformData(resp.data.data)
@@ -181,12 +178,12 @@ export abstract class XiboComponent<R, C, I> {
      * 
      * @param id - the component ID to remove
      */
-    public async remove(id: number): Promise<void> {
+    public async remove(id: number): Promise<boolean> {
         const url = `${this.endpoint}/${id}`
         const resp = await this.server.api.delete<CMSResponse<R>>(url)
         if (resp.data.success) {
             console.log('Remove: ', resp.data.message)
-            return
+            return true
         }
         this.threatError(resp)
     }

@@ -1,6 +1,5 @@
 import { Xibo } from './Xibo'
 import { XiboComponent } from './XiboComponent'
-import { Tag } from './XiboTags'
 
 export interface DisplayGroupInsert {
     displayGroup?: string;

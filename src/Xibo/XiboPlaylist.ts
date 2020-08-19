@@ -1,9 +1,8 @@
 import { Tag } from './XiboTags'
-import { Widgets } from './XiboWidgets'
+import { Widget } from './XiboWidgets'
 import { XiboComponent, CMSResponse } from './XiboComponent'
 
 import { Xibo } from './Xibo'
-import { XiboError } from './XiboError'
 import { Permission } from './XiboPermission'
 
 export interface Playlist {
@@ -48,7 +47,7 @@ export interface Playlist {
     tags: Tag[];
 
     //An array of Widgets assigned to this Playlist,
-    widgets: Widgets[];
+    widgets: Widget[];
 
     //An array of permissions,
     permissions: Permission[];
@@ -75,17 +74,15 @@ export class Playlists extends XiboComponent<Playlist, PlaylistCriteria, null> {
         })
     }
 
-    public async addMedia(playlistId: number, mediaId: number, posicion: number | undefined = undefined): Promise<Playlist> {
+    public async addMedia(playlistId: number, mediaId: number, position: number | undefined = undefined): Promise<Playlist> {
         const endPoint = `${this.endpoint}/library/assign/${playlistId}`
-        const arrMedias: MediaInsert = {'media[]': mediaId.toString(), displayOrder: posicion}
+        const arrMedias: MediaInsert = {'media[]': mediaId.toString(), displayOrder: position}
         const resp = await this.server.api.post<CMSResponse<Playlist>, MediaInsert>(endPoint, arrMedias)
-        if (!resp.data.success) {
-            if (resp.data.message) {
-                throw new XiboError(resp.data.message)
-            }
-            throw new XiboError(resp.statusText)
+        if (resp.data.success) {
+            // console.log(resp.data)
+            return resp.data.data
         }
-        // console.log(resp.data)
-        return resp.data.data
+        super.threatError(resp)
     }
+
 }

@@ -10,6 +10,7 @@ import { Layouts } from './XiboLayout'
 import { Medias } from './XiboMedia'
 import { Permissions } from './XiboPermission'
 import { AxiosResponse } from 'axios'
+import { Widgets } from './XiboWidgets'
 
 interface XiboCredentials {
     /** Client ID provided by Application settings in Xibo Server */
@@ -31,7 +32,7 @@ interface XiboAuth {
     /** Bearer token to use in all requests */
     access_token: string;
 
-    /** Toekn type */
+    /** Token type */
     token_type: string;
 
     /** Time to expire, in minutes */
@@ -69,6 +70,7 @@ export class Xibo implements XiboDef {
     public layouts: Layouts
     public medias: Medias
     public permissions: Permissions
+    public widgets: Widgets
 
     public constructor({ url, ...credentials }: XiboDTO) {
         this.api = new XiboAPI(url)
@@ -81,6 +83,7 @@ export class Xibo implements XiboDef {
         this.layouts = new Layouts(this)
         this.medias = new Medias(this)
         this.permissions = new Permissions(this)
+        this.widgets = new Widgets(this)
     }
 
     /**

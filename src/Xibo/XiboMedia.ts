@@ -90,7 +90,7 @@ export interface MediaCriteria {
     /** Filter by Retired */
     retired?: number;
 
-    /** Filter by Tags - comma seperated */
+    /** Filter by Tags - comma separated */
     tags?: string;
 
     /** A flag indicating whether to treat the tags filter as an exact match */

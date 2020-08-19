@@ -1,10 +1,11 @@
 /* eslint-disable no-undef */
 /* eslint-disable @typescript-eslint/camelcase */
-import { xb, getList, XiboSnippetVersion, addMedia, testTags } from './Xibo'
+import { xb, Xibo, getList, XiboSnippetVersion, addMedia, testTags } from './Xibo'
 import { USignResponse } from './Xibo/XiboComponent'
 import { Playlist } from './Xibo/XiboPlaylist'
+import { WidgetWebpageInsert } from './Xibo/XiboWidgets'
 
-interface Saida {
+interface Output {
     widgetId: number;
     duration: number;
     displayOrder: string;
@@ -13,9 +14,9 @@ interface Saida {
     url: string;
 }
 
-const mountPlaylist = (pl: Playlist): Saida[] => {
-    console.log('Mounting saidas')
-    const saidas: Saida[] = []
+const mountPlaylist = (pl: Playlist): Output[] => {
+    console.log('Mounting output')
+    const outputs: Output[] = []
     
     // console.log('Playlists:', pl.widgets)
     pl.widgets.forEach( wg => {
@@ -24,7 +25,7 @@ const mountPlaylist = (pl: Playlist): Saida[] => {
         const [url] = wg.widgetOptions.filter( opt => opt.option === 'uri')
         const urlDecoded = decodeURIComponent(url?.value || '')
 
-        const saida: Saida = {
+        const saida: Output = {
             widgetId: wg.widgetId,
             duration: wg.duration,
             displayOrder: wg.displayOrder.toString(),
@@ -33,14 +34,39 @@ const mountPlaylist = (pl: Playlist): Saida[] => {
             url: urlDecoded
         }
 
-        saidas.push(saida)
+        outputs.push(saida)
     })
 
-    // console.log('Widgets Options:', pl.data[0].widgets[0].widgetOptions)
+    console.log('Outputs:', outputs)
+    return outputs
+}
 
 
-    console.log('Saidas:', saidas)
-    return saidas
+const updatePlaylist = async (xiboInst: Xibo, plID: number, futurePlaylist: Array<WidgetWebpageInsert>) => {
+    
+    // get the playlist content
+    const {data: pls} = await xiboInst.playlists.list({playlistId: plID, embed: 'widgets'})
+    if (pls.length === 0) return // no data
+    console.log('Current Playlist:', pls[0])
+    const {widgets} = pls[0]
+
+    // delete all widgets from playlist
+    const deleted = await Promise.all(
+        widgets.map( wg => xiboInst.widgets.remove(wg.widgetId))
+    )
+    console.log('Deleted:', deleted)
+
+    // insert all new items
+    const inserted = await Promise.all(
+        futurePlaylist.map(async(newWidget) => {
+            console.log('Widget to Insert:', newWidget)
+            const ep = `/playlist/widget/webpage/${plID}`
+            const inserted = await xiboInst.widgets.insert(newWidget, ep)
+            return xiboInst.widgets.update(inserted.widgetId, newWidget)
+        })
+    )
+    console.log('Inserted:', inserted)
+    console.log('Finished process')
 }
 
 
@@ -52,47 +78,77 @@ const run = async (): Promise<void> => {
         client_secret: 'IKEAfUOtyvuBU6DNjkALSPJfQbdgsxatx4XHjVn60uPFIotAAOaiehvs5FIJf2QZ9xQhIrATxsHEj3XskhT9Cfw8xWkC8u84om4czWTvWNhTBBIre2efyvHLrI898NeKGA5FJTVeAQgi0vRRTLls4meogRy8cnRzDmKWIHPyr9d4igyrkk4DtI9e9Q4OaBu9LShEtHxW1bdVwc8dwbjNspURKf27aket0Xkr0sAB92gjaGizyhCsFPpGiatQHS'
     })
 
-    // const context = {
-    //     pageSize: 5,
-    //     page: 1,
-    //     resolve: (msg: string): void => console.log(msg),
-    //     query: {
-    //         clientType: 'android'
-    //       },
-    //     sorted: {
-    //         displayId: 1
-    //     }, 
-    // }
+    const plToInsert: WidgetWebpageInsert[] = [
+        {
+            name: 'Nossa Essência',
+            duration: 10,
+            modeId: 1,
+            uri: 'https://usign.io/wide/csn/geral/?e=nossaessencia&d=10&g=9',
+            useDuration: 1,
+        }, 
+        {
+            name: 'RH Em Foco',
+            duration: 15,
+            modeId: 1,
+            uri: 'https://usign.io/wide/csn/geral/?e=rhemfoco&d=15&g=9',
+            useDuration: 1,
+        }, 
+        {
+            name: 'Carros e Motos',
+            duration: 10,
+            modeId: 1,
+            uri: 'https://usign.io/wide/csn/geral/?e=carrosemotos&d=10&g=9',
+            useDuration: 1,
+        }, 
+    ]
 
     if (xiboInst) {
-        // const dados = await xiboInst?.displaygroups.list({length: 100})
-        // console.log(dados)
-        // await testTags(xiboInst)
-
-
-        // exibir playlists
-        const { data } = await xiboInst?.displaygroups.list({displayGroup: 'CSN'})
-        const segmentacao = data[0]
-        if (segmentacao) {
-            const sch = await xiboInst.schedules.listEvents({displayGroupId: segmentacao.displayGroupId, date: '2020-08-14 00:00:00'})
-            const layoutId = sch.data[0].layoutId
-            if (layoutId) {
-                const lo = await xiboInst.layouts.list({layoutId: layoutId, embed: 'regions,playlists,widgets'})
-                const layout = lo.data[0]
-                // console.log('Regions:', layout.regions)
-                // console.log('Widgets:', layout.regions[0].regionPlaylist.widgets)
-                // console.log('Widgets Options:', layout.regions[0].regionPlaylist.widgets[0].widgetOptions)
-
-                // locate subplaylist id
-                const sub = layout.regions[0].regionPlaylist.widgets[0].widgetOptions.filter( opt => opt.option === 'subPlaylistIds')
-                const [subID] = JSON.parse(sub[0].value)
-                const pl = await xiboInst.playlists.list({playlistId: subID, embed: 'widgets'})
-                // console.log('Playlists:', pl.data[0].widgets)
-                // console.log('Widgets Options:', pl.data[0].widgets[0].widgetOptions)
-                mountPlaylist(pl.data[0])
-            }
-        }
+        updatePlaylist(xiboInst, 86,  plToInsert)
     }
+
+
+    // // const context = {
+    // //     pageSize: 5,
+    // //     page: 1,
+    // //     resolve: (msg: string): void => console.log(msg),
+    // //     query: {
+    // //         clientType: 'android'
+    // //       },
+    // //     sorted: {
+    // //         displayId: 1
+    // //     }, 
+    // // }
+
+    // if (xiboInst) {
+    //     // const dados = await xiboInst?.displaygroups.list({length: 100})
+    //     // console.log(dados)
+    //     // await testTags(xiboInst)
+
+
+    //     // exibir playlists
+    //     const { data } = await xiboInst.displaygroups.list({displayGroupId: 13})
+    //     console.log('Data:', data)
+    //     const segmentacao = data[0]
+    //     if (segmentacao) {
+    //         const sch = await xiboInst.schedules.listEvents({displayGroupId: segmentacao.displayGroupId, date: '2020-08-14 00:00:00'})
+    //         const layoutId = sch.data[0].layoutId
+    //         if (layoutId) {
+    //             const lo = await xiboInst.layouts.list({layoutId: layoutId, embed: 'regions,playlists,widgets'})
+    //             const layout = lo.data[0]
+    //             // console.log('Regions:', layout.regions)
+    //             // console.log('Widgets:', layout.regions[0].regionPlaylist.widgets)
+    //             // console.log('Widgets Options:', layout.regions[0].regionPlaylist.widgets[0].widgetOptions)
+
+    //             // locate subplaylist id
+    //             const sub = layout.regions[0].regionPlaylist.widgets[0].widgetOptions.filter( opt => opt.option === 'subPlaylistIds')
+    //             const [subID] = JSON.parse(sub[0].value)
+    //             const pl = await xiboInst.playlists.list({playlistId: subID, embed: 'widgets'})
+    //             // console.log('Playlists:', pl.data[0].widgets)
+    //             // console.log('Widgets Options:', pl.data[0].widgets[0].widgetOptions)
+    //             mountPlaylist(pl.data[0])
+    //         }
+    //     }
+    // }
 }
 run()
 

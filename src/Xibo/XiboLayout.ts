@@ -138,8 +138,8 @@ export class Layouts extends XiboComponent<Layout, LayoutCriteria, null> {
     }
 
     public async getDraftLayout(parentId: number): Promise<Layout> {
-        const lista = await super.list({parentId, embed: 'regions,playlists,widgets'})
-        return lista.data[0]
+        const { data } = await super.list({parentId, embed: 'regions,playlists,widgets'})
+        return data[0]
     }
 
     public async publish(layoutId: number): Promise<Layout> {

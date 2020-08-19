@@ -1,4 +1,4 @@
-export const XiboSnippetVersion = '0.0.15'
+export const XiboSnippetVersion = '0.0.21'
 
 export * from './Xibo'
 // export * from './XiboCampaign'
