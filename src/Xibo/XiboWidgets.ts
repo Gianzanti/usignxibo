@@ -92,6 +92,9 @@ export interface WidgetWebpageInsert {
     
     /** The mode option for Web page, 1- Open Natively, 2- Manual Position, 3- Best Ft */
     modeId: 1 | 2 | 3;
+
+    /** The display order of this widget - ADDED TO MAKE IT COMPATIBLE WITH USIGN*/
+    displayOrder: number;
 }
 
 export class Widgets extends XiboComponent<Widget, null, WidgetWebpageInsert> {

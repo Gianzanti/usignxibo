@@ -41,31 +41,70 @@ const mountPlaylist = (pl: Playlist): Output[] => {
     return outputs
 }
 
+const addWidgets = async (xiboInst: Xibo, plID: number, index: number) => {
+    const ep = `/playlist/widget/webpage/${plID}`
+    const newWidget: WidgetWebpageInsert = {
+        displayOrder: index,
+        name: 'Nossa Essência',
+        duration: 10,
+        modeId: 1,
+        uri: 'https://usign.io/wide/csn/geral/?e=nossaessencia&d=10&g=9',
+        useDuration: 1,
+    }
+    const inserted = await xiboInst.widgets.insert(newWidget, ep)
+    console.log('Added:', inserted)
+}
+
+const getWidgets = async (xiboInst: Xibo, plID: number) => {
+    const {data: pls} = await xiboInst.playlists.list({playlistId: plID, embed: 'widgets'})
+    if (pls.length === 0) return // no data
+    const {widgets} = pls[0]
+    return widgets
+}
+
 
 const updatePlaylist = async (xiboInst: Xibo, plID: number, futurePlaylist: Array<WidgetWebpageInsert>) => {
     
     // get the playlist content
-    const {data: pls} = await xiboInst.playlists.list({playlistId: plID, embed: 'widgets'})
-    if (pls.length === 0) return // no data
-    console.log('Current Playlist:', pls[0])
-    const {widgets} = pls[0]
+    const widgets = await getWidgets(xiboInst, plID)
+    if (!widgets) return
 
-    // delete all widgets from playlist
-    const deleted = await Promise.all(
-        widgets.map( wg => xiboInst.widgets.remove(wg.widgetId))
-    )
-    console.log('Deleted:', deleted)
+    const currentSize = widgets.length
+    const futureSize = futurePlaylist.length
+    const difference = currentSize - futureSize
+    console.log('Current Size:', currentSize, ' Future Size:', futureSize, 'Diff:', difference)
 
-    // insert all new items
+    if (difference < 0) {
+        // add widgets
+        console.log('Adding widgets:', -difference)
+        const items = [...Array(-difference).keys()]
+        console.log('Items:', items)
+        for (const index of items) {
+            await addWidgets(xiboInst, plID, index)
+        }
+    } else if (difference > 0) {
+        // delete some widgets
+        console.log('difference:', difference)
+        const toRemove = widgets.slice(difference)
+        console.log('Deleting widgets:', toRemove.length)
+        const deleted = await Promise.all(
+            toRemove.map( wg => xiboInst.widgets.remove(wg.widgetId))
+        )
+    }
+
+    const curWidgets = difference !== 0 ? await getWidgets(xiboInst, plID) : widgets
+    if (!curWidgets) return
+
+    // update all new items
     const inserted = await Promise.all(
-        futurePlaylist.map(async(newWidget) => {
-            console.log('Widget to Insert:', newWidget)
-            const ep = `/playlist/widget/webpage/${plID}`
-            const inserted = await xiboInst.widgets.insert(newWidget, ep)
-            return xiboInst.widgets.update(inserted.widgetId, newWidget)
+        curWidgets.map(async(curWidget) => {
+            // console.log('Widget to Insert:', newWidget)
+            const newWidget = futurePlaylist[curWidget.displayOrder-1]
+            const updated = await xiboInst.widgets.update(curWidget.widgetId, newWidget)
+            console.log('Updated:', updated.displayOrder, newWidget.displayOrder)
+            return updated
         })
     )
-    console.log('Inserted:', inserted)
     console.log('Finished process')
 }
 
@@ -79,31 +118,48 @@ const run = async (): Promise<void> => {
     })
 
     const plToInsert: WidgetWebpageInsert[] = [
-        {
-            name: 'Nossa Essência',
-            duration: 10,
-            modeId: 1,
-            uri: 'https://usign.io/wide/csn/geral/?e=nossaessencia&d=10&g=9',
-            useDuration: 1,
-        }, 
-        {
-            name: 'RH Em Foco',
-            duration: 15,
-            modeId: 1,
-            uri: 'https://usign.io/wide/csn/geral/?e=rhemfoco&d=15&g=9',
-            useDuration: 1,
-        }, 
-        {
-            name: 'Carros e Motos',
-            duration: 10,
-            modeId: 1,
-            uri: 'https://usign.io/wide/csn/geral/?e=carrosemotos&d=10&g=9',
-            useDuration: 1,
-        }, 
+        {useDuration: 1, modeId: 1, displayOrder: 1, name: 'Limpa Tela', duration: 5, uri: 'https://usign.io/wide/csn/medias/?&g=9&e=media&m=5f2d6b4e45712d00196dc072&d=5'},
+        {useDuration: 1, modeId: 1, displayOrder: 2, name: 'Nossa Essência', duration: 18, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=nossaessencia&d=18'},
+        {useDuration: 1, modeId: 1, displayOrder: 3, name: 'RH Em Foco', duration: 10, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=rhemfoco&d=10'},
+        {useDuration: 1, modeId: 1, displayOrder: 4, name: 'HARDNEWS - UOL', duration: 10, uri: 'https://usign.io/widgets/uol/news/?&g=9&e=internacional&d=10&w=5f1aec9b7fd6a4001a431169'},
+        {useDuration: 1, modeId: 1, displayOrder: 5, name: 'Acontece', duration: 10, uri: 'https://usign.io/wide/csn/acontece?&g=9&e=acontece&d=10'},
+        {useDuration: 1, modeId: 1, displayOrder: 6, name: 'Você Sabia?', duration: 20, uri: 'https://usign.io/wide/csn/quiz?&g=9&e=quiz&d=20'},
+        {useDuration: 1, modeId: 1, displayOrder: 7, name: 'Giro Pelas Áreas', duration: 13, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=giro&d=13'},
+        {useDuration: 1, modeId: 1, displayOrder: 8, name: 'Eu Indico', duration: 20, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=euindico&d=20'},
+        {useDuration: 1, modeId: 1, displayOrder: 9, name: 'Carros', duration: 15, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=carrosemotos&d=15'},
+        {useDuration: 1, modeId: 1, displayOrder: 10, name: 'CSN Social', duration: 13, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=social&d=13'},
+        {useDuration: 1, modeId: 1, displayOrder: 11, name: 'Financeiro (Placeholder)', duration: 10, uri: 'https://usign.io/widgets/uol/moedas/?&g=9&e=moedas&d=10&w=5efb5ed69e27860019fe5ece'},
+        {useDuration: 1, modeId: 1, displayOrder: 12, name: 'Aqui Tem', duration: 23, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=aquitem&d=23'},
+        {useDuration: 1, modeId: 1, displayOrder: 13, name: 'Editoria Livre - Foto', duration: 20, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=livre&d=20'},
+        {useDuration: 1, modeId: 1, displayOrder: 14, name: 'Regionais', duration: 10, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=regionais&d=10'},
+        {useDuration: 1, modeId: 1, displayOrder: 15, name: 'Nossa Gente', duration: 10, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=nossagente&d=10'},
+        {useDuration: 1, modeId: 1, displayOrder: 16, name: 'CSN Porto Real', duration: 30, uri: 'https://usign.io/wide/csn/medias?&g=9&e=media&m=5f3d927e9746e600122a8af6&d=30'},
+        {useDuration: 1, modeId: 1, displayOrder: 17, name: 'Valor Economico (Placeholder)', duration: 10, uri: 'https://usign.io/widgets/uol/news/?&g=9&e=economia&d=10&w=5f1aec9b7fd6a4001a431169'},
+        {useDuration: 1, modeId: 1, displayOrder: 18, name: 'Plantão CSN', duration: 23, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=plantao&d=23'},
+        {useDuration: 1, modeId: 1, displayOrder: 19, name: 'Limpa Tela', duration: 5, uri: 'https://usign.io/wide/csn/medias/?&g=9&e=media&m=5f2d6b4e45712d00196dc072&d=5'},
+        {useDuration: 1, modeId: 1, displayOrder: 20, name: 'Panorama CSN', duration: 10, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=panorama&d=10'},
+        {useDuration: 1, modeId: 1, displayOrder: 21, name: 'Editoria Livre - Video', duration: 20, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=livre&d=20'},
+        {useDuration: 1, modeId: 1, displayOrder: 22, name: 'Dicas Culturais', duration: 15, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=dicas&d=15'},
+        {useDuration: 1, modeId: 1, displayOrder: 23, name: 'RH Em Foco', duration: 10, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=rhemfoco&d=10'},
+        {useDuration: 1, modeId: 1, displayOrder: 24, name: 'HARDNEWS - Uol', duration: 10, uri: 'https://usign.io/widgets/uol/news/?&g=9&e=esporte&d=10&w=5efa55039e27860019fe5983'},
+        {useDuration: 1, modeId: 1, displayOrder: 25, name: 'CSN Social', duration: 13, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=social&d=13'},
+        {useDuration: 1, modeId: 1, displayOrder: 26, name: 'Você Sabia?', duration: 20, uri: 'https://usign.io/wide/csn/quiz?&g=9&e=quiz&d=20'},
+        {useDuration: 1, modeId: 1, displayOrder: 27, name: 'Telecine (Placeholder)', duration: 15, uri: 'https://usign.io/wide/csn/medias?&g=9&e=teste&m=5f3d8dc67e6cdb001326e3f1&d=15'},
+        {useDuration: 1, modeId: 1, displayOrder: 28, name: 'Aqui Tem', duration: 23, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=aquitem&d=23'},
+        {useDuration: 1, modeId: 1, displayOrder: 29, name: 'Eu Indico', duration: 20, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=euindico&d=20'},
+        {useDuration: 1, modeId: 1, displayOrder: 30, name: 'Carros e Motos', duration: 10, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=carrosemotos&d=10'},
+        {useDuration: 1, modeId: 1, displayOrder: 31, name: 'Nossa Essencia', duration: 18, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=nossaessencia&d=18'},
+        {useDuration: 1, modeId: 1, displayOrder: 32, name: 'Acontece', duration: 10, uri: 'https://usign.io/wide/csn/acontece?&g=9&e=acontece&d=10'},
+        {useDuration: 1, modeId: 1, displayOrder: 33, name: 'CSN Mineração', duration: 30, uri: 'https://usign.io/wide/csn/medias?&g=9&e=media&m=5f3d92497e6cdb001326e3f3&d=30'},
+        {useDuration: 1, modeId: 1, displayOrder: 34, name: 'Valor Economico (Placeholder)', duration: 10, uri: 'https://usign.io/widgets/uol/news/?&g=9&e=economia&d=10&w=5f1aec9b7fd6a4001a431169'},
+        {useDuration: 1, modeId: 1, displayOrder: 35, name: 'Panorama CSN', duration: 10, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=panorama&d=10'},
+        {useDuration: 1, modeId: 1, displayOrder: 36, name: 'RH Em Foco', duration: 10, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=rhemfoco&d=10'},
+        {useDuration: 1, modeId: 1, displayOrder: 37, name: 'Carros e Motos', duration: 15, uri: 'https://usign.io/wide/csn/geral/?&g=9&e=carrosemotos&d=15'},
     ]
+ 
 
     if (xiboInst) {
-        updatePlaylist(xiboInst, 86,  plToInsert)
+        updatePlaylist(xiboInst, 80, plToInsert)
     }
 
 
