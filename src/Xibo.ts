@@ -1,3 +1,4 @@
+import { AxiosResponse } from 'axios'
 import { XiboAPI  } from './XiboAPI'
 import { XiboError } from './XiboError'
 import { Tags } from './XiboTags'
@@ -9,7 +10,6 @@ import { Playlists } from './XiboPlaylist'
 import { Layouts } from './XiboLayout'
 import { Medias } from './XiboMedia'
 import { Permissions } from './XiboPermission'
-import { AxiosResponse } from 'axios'
 import { Widgets } from './XiboWidgets'
 
 interface XiboCredentials {
@@ -57,6 +57,7 @@ export interface XiboDef {
     layouts: Layouts;
     medias: Medias;
     permissions: Permissions;
+    widgets: Widgets
 }
 
 export class Xibo implements XiboDef {
