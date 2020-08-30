@@ -1,6 +1,6 @@
 {
   "name": "@usign/xibo",
-  "version": "0.0.6",
+  "version": "0.0.7",
   "description": "Xibo API",
   "main": "lib/src/index.js",
   "types": "lib/src",
@@ -12,7 +12,7 @@
   "scripts": {
     "dev:debug": "ts-node-dev --inspect=5858 --inspect-brk --respawn --transpile-only src/index.ts",
     "dev:server": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "build": "yarn version --patch & tsc -p ."
+    "build": "yarn version --patch --no-git-tag-version & tsc -p ."
   },
   "devDependencies": {
     "@types/qs": "^6.9.4",
