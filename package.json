@@ -1,9 +1,9 @@
 {
   "name": "@usign/xibo",
-  "version": "0.0.24",
+  "version": "0.0.4",
   "description": "Xibo API",
-  "main": "lib/index.js",
-  "types": "lib",
+  "main": "lib/src/index.js",
+  "types": "lib/src",
   "license": "MIT",
   "keywords": [
     "xibo"
@@ -31,6 +31,7 @@
     "uuid": "^8.3.0"
   },
   "dependencies": {
+    "@types/node": "^14.6.2",
     "axios": "^0.20.0",
     "qs": "^6.9.4"
   }
