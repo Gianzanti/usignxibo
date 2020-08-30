@@ -1,7 +1,6 @@
-import { Tag } from './XiboTags'
-import { XiboComponent, CMSResponse } from './XiboComponent'
+import { Tag } from './tags'
+import { Entity, CMSResponse } from './entity'
 import { Xibo } from './Xibo'
-import { XiboError } from './XiboError'
 
 export interface Media {
     /** The Media ID */
@@ -126,7 +125,7 @@ export interface MediaInsert {
     expires?: string;
 }
 
-export class Medias extends XiboComponent<Media, MediaCriteria, MediaInsert> {
+export class Medias extends Entity<Media, MediaCriteria, MediaInsert> {
     public constructor(server: Xibo) {
         super({
             endPoint: '/library',
@@ -138,12 +137,8 @@ export class Medias extends XiboComponent<Media, MediaCriteria, MediaInsert> {
         const endPoint = '/library/uploadUrl'
         const resp = await this.server.api.post<CMSResponse<Media>, MediaInsert>(endPoint, content)
         if (!resp.data.success) {
-            if (resp.data.message) {
-                throw new XiboError(resp.data.message)
-            }
-            throw new XiboError(resp.statusText)
+            return resp.data.data
         }
-        // console.log(resp.data.message)
-        return resp.data.data
+        super.dealWithError(resp)
     }
 }

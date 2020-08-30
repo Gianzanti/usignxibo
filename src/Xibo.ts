@@ -1,16 +1,15 @@
-import { XiboAPI  } from './XiboAPI'
-import { XiboError } from './XiboError'
-import { Tags } from './XiboTags'
-import { DisplayGroups } from './XiboDisplayGroups'
-import { Displays } from './XiboDisplays'
-import { Schedules } from './XiboSchedules'
-import { CMSResponse } from './XiboComponent'
-import { Playlists } from './XiboPlaylist'
-import { Layouts } from './XiboLayout'
-import { Medias } from './XiboMedia'
-import { Permissions } from './XiboPermission'
 import { AxiosResponse } from 'axios'
-import { Widgets } from './XiboWidgets'
+import { API  } from './api'
+import { Tags } from './tags'
+import { DisplayGroups } from './displayGroups'
+import { Displays } from './displays'
+import { Schedules } from './schedules'
+import { CMSResponse } from './entity'
+import { Playlists } from './playlists'
+import { Layouts } from './layouts'
+import { Medias } from './medias'
+import { Permissions } from './permissions'
+import { Widgets } from './widgets'
 
 interface XiboCredentials {
     /** Client ID provided by Application settings in Xibo Server */
@@ -57,11 +56,12 @@ export interface XiboDef {
     layouts: Layouts;
     medias: Medias;
     permissions: Permissions;
+    widgets: Widgets
 }
 
 export class Xibo implements XiboDef {
     private credentials: XiboCredentials;
-    public api: XiboAPI;
+    public api: API;
     public tags: Tags;
     public displaygroups: DisplayGroups
     public displays: Displays
@@ -73,7 +73,7 @@ export class Xibo implements XiboDef {
     public widgets: Widgets
 
     public constructor({ url, ...credentials }: XiboDTO) {
-        this.api = new XiboAPI(url)
+        this.api = new API(url)
         this.credentials = credentials
         this.tags = new Tags(this)
         this.displaygroups = new DisplayGroups(this)
@@ -140,7 +140,7 @@ export class Xibo implements XiboDef {
      * @param resp - The failed axios response 
      */
     private threatError(resp: AxiosResponse): never {
-        if (resp.data.message) throw new XiboError(resp.data.message)
-        throw new XiboError(resp.statusText)
+        if (resp.data.message) throw new Error(resp.data.message)
+        throw new Error(resp.statusText)
     }
 }

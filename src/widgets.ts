@@ -1,7 +1,7 @@
-import { WidgetOption } from './XiboWidgetOption'
-import { WidgetAudio } from './XiboWidgetAudio'
-import { Permission } from './XiboPermission'
-import { XiboComponent } from './XiboComponent'
+import { WidgetOption } from './widgetOptions'
+import { WidgetAudio } from './widgetAudios'
+import { Permission } from './permissions'
+import { Entity } from './entity'
 import { Xibo } from './Xibo'
 
 export interface Widget {
@@ -97,7 +97,7 @@ export interface WidgetWebpageInsert {
     displayOrder: number;
 }
 
-export class Widgets extends XiboComponent<Widget, null, WidgetWebpageInsert> {
+export class Widgets extends Entity<Widget, null, WidgetWebpageInsert> {
     public constructor(server: Xibo) {
         super({
             endPoint: '/playlist/widget',

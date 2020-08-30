@@ -1,5 +1,5 @@
 import { Xibo } from './Xibo'
-import { XiboComponent } from './XiboComponent'
+import { Entity } from './entity'
 
 export interface DisplayInsert {
     displayId?: number;
@@ -98,7 +98,7 @@ export interface DisplayCriteria {
     lastAccessed?: string;
 }
 
-export class Displays extends XiboComponent<Display, DisplayCriteria, DisplayInsert> {
+export class Displays extends Entity<Display, DisplayCriteria, DisplayInsert> {
     public constructor(server: Xibo) {
         super({
             endPoint: '/display',

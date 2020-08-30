@@ -1,5 +1,5 @@
 import { Xibo } from './Xibo'
-import { XiboComponent } from './XiboComponent'
+import { Entity } from './entity'
 
 export interface DisplayGroupInsert {
     displayGroup?: string;
@@ -42,6 +42,12 @@ export interface DisplayGroup {
     /** The display bandwidth limit */
     bandwidthLimit: number;
 
+
+    /** Function to delete current entity */
+    delete: () => Promise<boolean>;
+
+    /** Function to update current entity */
+    save: (newData: DisplayGroup|DisplayGroupInsert) => Promise<DisplayGroup>;
 }
 
 interface DisplayGroupCriteria {
@@ -54,11 +60,24 @@ interface DisplayGroupCriteria {
     forSchedule?: number;
 }
 
-export class DisplayGroups extends XiboComponent<DisplayGroup, DisplayGroupCriteria, DisplayGroupInsert> {
+export class DisplayGroups extends Entity<DisplayGroup, DisplayGroupCriteria, DisplayGroupInsert> {
     public constructor(server: Xibo) {
         super({
             endPoint: '/displaygroup',
             server: server,
         })
+    }
+
+    /**
+     * Add entity functions to returned object
+     * 
+     * @param data - DisplayGroup Object
+     */
+    protected transformData (data: DisplayGroup): DisplayGroup {
+        return {
+            ...data,
+            delete: () => super.remove(data.displayGroupId),
+            save: (newData: DisplayGroup|DisplayGroupInsert) => super.update(data.displayGroupId, newData)
+        }
     }
 }

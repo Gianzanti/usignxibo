@@ -13,7 +13,7 @@ export interface XiboErrorResponse {
     };
 }
 
-export class XiboAPI {
+export class API {
     /** A private instance of AXIOS */
     private ax: AxiosInstance;
 
@@ -160,4 +160,4 @@ export class XiboAPI {
     }
 }
 
-export default XiboAPI
+export default API

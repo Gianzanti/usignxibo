@@ -1,6 +1,5 @@
 /* eslint-disable no-undef */
 import { Xibo } from './Xibo'
-import { XiboError } from './XiboError'
 import { AxiosResponse } from 'axios'
 
 export interface Pagination {
@@ -38,7 +37,7 @@ export interface USignResponse<T> {
     total: number;
 }
 
-export interface XiboComponentDTO {
+export interface EntityDTO {
     /** An instance of Xibo Server connection */
     server: Xibo;
     /** the default endPoint for current component */
@@ -53,13 +52,13 @@ export interface XiboComponentDTO {
  * @typeparam C - Defines the criteria to search component
  * @typeparam I - Defines the type of the argument for the insert method
  */
-export abstract class XiboComponent<R, C, I> {
+export abstract class Entity<R, C, I> {
 
     protected server: Xibo;
 
     protected endpoint: string;
 
-    public constructor({server, endPoint}: XiboComponentDTO) {
+    public constructor({server, endPoint}: EntityDTO) {
         this.server = server
         this.endpoint = endPoint
     }
@@ -119,7 +118,7 @@ export abstract class XiboComponent<R, C, I> {
                 return this.mountUSignResponse(resp.data, criteria && criteria.start, criteria && criteria.length)
             }
         }
-        this.threatError(resp)
+        this.dealWithError(resp)
     }
 
     /**
@@ -140,7 +139,7 @@ export abstract class XiboComponent<R, C, I> {
             console.log('Insert:', resp.data.message)
             return this.transformData(resp.data.data)
         }
-        this.threatError(resp)
+        this.dealWithError(resp)
     }
 
 
@@ -165,7 +164,7 @@ export abstract class XiboComponent<R, C, I> {
             console.log('Update:', resp.data.message)
             return this.transformData(resp.data.data)
         }
-        this.threatError(resp)
+        this.dealWithError(resp)
     }
 
 
@@ -185,7 +184,7 @@ export abstract class XiboComponent<R, C, I> {
             console.log('Remove: ', resp.data.message)
             return true
         }
-        this.threatError(resp)
+        this.dealWithError(resp)
     }
 
     /**
@@ -193,10 +192,10 @@ export abstract class XiboComponent<R, C, I> {
      * 
      * @param resp - The failed axios response 
      */
-    protected threatError(resp: AxiosResponse): never {
+    protected dealWithError(resp: AxiosResponse): never {
         console.log('Error:', resp.data.message)
-        if (resp.data.message) throw new XiboError(resp.data.message)
-        throw new XiboError(resp.statusText)
+        if (resp.data.message) throw new Error(resp.data.message)
+        throw new Error(resp.statusText)
     }
 }
 

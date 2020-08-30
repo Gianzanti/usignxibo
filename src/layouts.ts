@@ -1,8 +1,7 @@
-import { Region } from './XiboRegion'
-import { Tag } from './XiboTags'
-import { XiboComponent, CMSResponse } from './XiboComponent'
+import { Region } from './regions'
+import { Tag } from './tags'
+import { Entity, CMSResponse } from './entity'
 import { Xibo } from './Xibo'
-import { XiboError } from './XiboError'
 
 export interface Layout {
     /** The layoutId */
@@ -116,7 +115,7 @@ interface Publish{
     publishDate?: string;
 }
 
-export class Layouts extends XiboComponent<Layout, LayoutCriteria, null> {
+export class Layouts extends Entity<Layout, LayoutCriteria, null> {
     public constructor(server: Xibo) {
         super({
             endPoint: '/layout',
@@ -127,14 +126,10 @@ export class Layouts extends XiboComponent<Layout, LayoutCriteria, null> {
     public async checkout(layoutId: number): Promise<Layout> {
         const endPoint = `${this.endpoint}/checkout/${layoutId}`
         const resp = await this.server.api.put<CMSResponse<Layout>, null>(endPoint, null)
-        if (!resp.data.success) {
-            if (resp.data.message) {
-                throw new XiboError(resp.data.message)
-            }
-            throw new XiboError(resp.statusText)
+        if (resp.data.success) {
+            return resp.data.data
         }
-        // console.log(resp.data)
-        return resp.data.data
+        super.dealWithError(resp)
     }
 
     public async getDraftLayout(parentId: number): Promise<Layout> {
@@ -146,12 +141,8 @@ export class Layouts extends XiboComponent<Layout, LayoutCriteria, null> {
         const endPoint = `${this.endpoint}/publish/${layoutId}`
         const resp = await this.server.api.put<CMSResponse<Layout>, Publish>(endPoint, {publishNow: 1})
         if (!resp.data.success) {
-            if (resp.data.message) {
-                throw new XiboError(resp.data.message)
-            }
-            throw new XiboError(resp.statusText)
+            return resp.data.data
         }
-        // console.log(resp.data)
-        return resp.data.data
+        super.dealWithError(resp)
     }
 }

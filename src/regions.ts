@@ -1,6 +1,6 @@
-import { RegionOption } from './XiboRegionOption'
-import { Permission } from './XiboPermission'
-import { Playlist } from './XiboPlaylist'
+import { RegionOption } from './regionOptions'
+import { Permission } from './permissions'
+import { Playlist } from './playlists'
 
 export interface Region {
     //The ID of this region,  
