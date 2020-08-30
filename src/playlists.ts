@@ -1,9 +1,9 @@
-import { Tag } from './XiboTags'
-import { Widget } from './XiboWidgets'
-import { XiboComponent, CMSResponse } from './XiboComponent'
+import { Tag } from './tags'
+import { Widget } from './widgets'
+import { Entity, CMSResponse } from './entity'
 
 import { Xibo } from './Xibo'
-import { Permission } from './XiboPermission'
+import { Permission } from './permissions'
 
 export interface Playlist {
 
@@ -66,7 +66,7 @@ interface MediaInsert {
     displayOrder?: number;
 }
 
-export class Playlists extends XiboComponent<Playlist, PlaylistCriteria, null> {
+export class Playlists extends Entity<Playlist, PlaylistCriteria, null> {
     public constructor(server: Xibo) {
         super({
             endPoint: '/playlist',
@@ -82,7 +82,7 @@ export class Playlists extends XiboComponent<Playlist, PlaylistCriteria, null> {
             // console.log(resp.data)
             return resp.data.data
         }
-        super.threatError(resp)
+        super.dealWithError(resp)
     }
 
 }

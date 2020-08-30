@@ -1,6 +1,5 @@
-import { XiboComponent, CMSResponse, CMSData } from './XiboComponent'
+import { Entity, CMSResponse, CMSData } from './entity'
 import { Xibo } from '.'
-import { XiboError } from './XiboError'
 
 export interface Permission {
     /** The ID of this Permission Record */
@@ -45,7 +44,7 @@ export interface PermissionCriteria {
     permissionId?: number;
 }
 
-export class Permissions extends XiboComponent<Permission, PermissionCriteria, null> {
+export class Permissions extends Entity<Permission, PermissionCriteria, null> {
     public constructor(server: Xibo) {
         super({
             endPoint: '/user/permissions',
@@ -57,26 +56,18 @@ export class Permissions extends XiboComponent<Permission, PermissionCriteria, n
         const endPoint = `${this.endpoint}/${entityType}/${objectId}`
         const resp = await this.server.api.get<CMSResponse<CMSData<Permission>>>(endPoint)
         if (!resp.data.success) {
-            if (resp.data.message) {
-                throw new XiboError(resp.data.message)
-            }
-            throw new XiboError(resp.statusText)
+            return
         }
-        // console.log(resp.data.data.data)
-        return
+        super.dealWithError(resp)
     }
 
     public async set(entityType: string, objectId: number): Promise<void> {
         const endPoint = `${this.endpoint}/${entityType}/${objectId}`
         const resp = await this.server.api.post<CMSResponse<CMSData<Permission>>>(endPoint)
         if (!resp.data.success) {
-            if (resp.data.message) {
-                throw new XiboError(resp.data.message)
-            }
-            throw new XiboError(resp.statusText)
+            return
         }
-        // console.log(resp.data.data.data)
-        return
+        super.dealWithError(resp)
     }
 
 }

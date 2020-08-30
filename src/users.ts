@@ -1,11 +1,11 @@
-import { Campaign } from './XiboCampaign'
-import { Layout } from './XiboLayout'
-import { Media } from './XiboMedia'
-import { Schedule } from './XiboSchedules'
-import { Playlist } from './XiboPlaylist'
-import { XiboComponent } from './XiboComponent'
+import { Campaign } from './campaign'
+import { Layout } from './layouts'
+import { Media } from './medias'
+import { Schedule } from './schedules'
+import { Playlist } from './playlists'
+import { Entity } from './entity'
 import { Xibo } from '.'
-import { UserGroup } from './XiboUserGroup'
+import { UserGroup } from './userGroups'
 
 export interface User {
     /** The ID of this User */
@@ -112,7 +112,7 @@ export interface User {
 }
 
 
-export class Users extends XiboComponent<User, null, null> {
+export class Users extends Entity<User, null, null> {
     public constructor(server: Xibo) {
         super({
             endPoint: '/user',

@@ -1,9 +1,9 @@
 /* eslint-disable no-undef */
 import { Xibo } from './Xibo'
-import { XiboComponent, USignResponse, CMSResponse, Pagination } from './XiboComponent'
-import { Campaign } from './XiboCampaign'
-import { DisplayGroup } from './XiboDisplayGroups'
-import { Layout } from './XiboLayout'
+import { Entity, USignResponse, CMSResponse, Pagination } from './entity'
+import { Campaign } from './campaign'
+import { DisplayGroup } from './displayGroups'
+import { Layout } from './layouts'
 
 // export interface ScheduleInsert {
 
@@ -52,7 +52,7 @@ interface ScheduleCriteria {
     date?: string; //Date in Y-m-d H:i:s
 }
 
-export class Schedules extends XiboComponent<Schedule, ScheduleCriteria, null> {
+export class Schedules extends Entity<Schedule, ScheduleCriteria, null> {
     public constructor(server: Xibo) {
         super({
             endPoint: '/schedule',
@@ -86,6 +86,6 @@ export class Schedules extends XiboComponent<Schedule, ScheduleCriteria, null> {
         if (resp.data.success) {
             return this.mountScheduleResponse(resp.data, criteria && criteria.start, criteria && criteria.length)
         }
-        super.threatError(resp)
+        super.dealWithError(resp)
     }
 }

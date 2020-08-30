@@ -1,5 +1,5 @@
 import { Xibo } from './Xibo'
-import { XiboComponent } from './XiboComponent'
+import { Entity } from './entity'
 
 export interface TagInsert {
     /** Tag name */
@@ -36,6 +36,8 @@ export interface Tag {
     // displayGroups: string[];
     /** The Tag Value */
     value: string;
+    delete: () => Promise<boolean>;
+    save: (newData: Tag|TagInsert) => Promise<Tag>;
 }
 
 /** 
@@ -61,33 +63,29 @@ interface TagCriteria {
  * 
  * @example to list all tags
  * ```
- * // to list all tags
- * const tags = await xibo.tags.list()
+ * const tags = await xibo.tags.list() 
+ * ```
  * 
- * // to search for an specific tagId
- * // can use any TagCriteria to search for
- * const tags = await xibo.tags.list({tagId: 5})
+ * @example to search using any TagCriteria as parameter
+ * const tags = await xibo.tags.list(\{tagId: 5\})
  * 
- * // to insert a tag
- * const tagToInsert: TagInsert = {
+ * @example to insert a tag
+ * const inserted = await xibo.tags.insert(\{
  *       name: 'TagName',
  *       isRequired: 0,
  *       options: ['some', 'options', 'comma', 'separated']
- * }
- * const inserted = await xibo.tags.insert(tagToInsert)
+ * \})
  * 
- * // to update a tag
- * const newTag = {
+ * @example to update a tag
+ * const updated = await inserted.save(\{
  *     ...inserted,
  *     name: 'TagNameChanged'
- * }
- * const toUpdate = await xibo.tags.update(newTag.tagId, newTag)
+ * \})
  * 
- * // to delete a tag
- * xibo.tags.remove(toUpdate.tagId)
- * ```
+ * @example to delete a tag
+  * const removed = await updated.delete()
  */
-export class Tags extends XiboComponent<Tag, TagCriteria, TagInsert> {
+export class Tags extends Entity<Tag, TagCriteria, TagInsert> {
     
     public constructor(server: Xibo) {
         super({
@@ -102,20 +100,26 @@ export class Tags extends XiboComponent<Tag, TagCriteria, TagInsert> {
      * @param data - Tag Object
      */
     protected transformData (data: Tag): Tag {
+        const newTag = {
+            ...data,
+            delete: () => super.remove(data.tagId),
+            save: (newData: Tag|TagInsert) => super.update(data.tagId, newData)
+        }
+
         if (data.options) {
             const newOptions = this.tryParse(data.options as unknown as string)
             if (Array.isArray(newOptions)) {
                 return {
-                    ...data,
+                    ...newTag,
                     options: newOptions
                 }
             }
             return {
-                ...data,
+                ...newTag,
                 options: (data.options as unknown as string).split(',')
             }
         }
-        return data
+        return newTag
     }
 
     /**
