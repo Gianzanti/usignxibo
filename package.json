@@ -1,6 +1,6 @@
 {
   "name": "@usign/xibo",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Xibo API",
   "main": "lib/src/index.js",
   "types": "lib/src",
