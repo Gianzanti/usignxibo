@@ -42,6 +42,12 @@ export interface DisplayGroup {
     /** The display bandwidth limit */
     bandwidthLimit: number;
 
+
+    /** Function to delete current entity */
+    delete: () => Promise<boolean>;
+
+    /** Function to update current entity */
+    save: (newData: DisplayGroup|DisplayGroupInsert) => Promise<DisplayGroup>;
 }
 
 interface DisplayGroupCriteria {
@@ -60,5 +66,18 @@ export class DisplayGroups extends Entity<DisplayGroup, DisplayGroupCriteria, Di
             endPoint: '/displaygroup',
             server: server,
         })
+    }
+
+    /**
+     * Add entity functions to returned object
+     * 
+     * @param data - DisplayGroup Object
+     */
+    protected transformData (data: DisplayGroup): DisplayGroup {
+        return {
+            ...data,
+            delete: () => super.remove(data.displayGroupId),
+            save: (newData: DisplayGroup|DisplayGroupInsert) => super.update(data.displayGroupId, newData)
+        }
     }
 }

@@ -4,9 +4,11 @@ import { Entity } from './entity'
 export interface TagInsert {
     /** Tag name */
     name: string;
+
     /** A flag indicating whether value selection on assignment is required */
     isRequired?: 0 | 1;
-    /** A comma separated string of Tag options */
+
+    /** An array of strings of Tag options */
     options?: string[];
 }
 
@@ -16,14 +18,29 @@ export interface TagInsert {
 export interface Tag {
     /** The Tag ID */
     tagId: number;
+
     /** The Tag Name */
     tag: string;
+
     /** Flag, whether the tag is a system tag */
     isSystem: 0 | 1;
+
     /** Flag, whether the tag requires additional values */
     isRequired: 0 | 1;
+
     /** An array of options assigned to this Tag */
     options: string[];
+
+    /** The Tag Value */
+    value: string;
+
+    /** Function to delete current tag */
+    delete: () => Promise<boolean>;
+
+    /** Function to update current tag */
+    save: (newData: Tag|TagInsert) => Promise<Tag>;
+
+    
     // /** An array of layoutID and values pairs with this Tag */
     // layouts: string[];
     // /** An array of playlistIDs and values with this Tag */
@@ -34,10 +51,6 @@ export interface Tag {
     // medias: string[];
     // /** An array of displayGroupIds and values with this Tag */
     // displayGroups: string[];
-    /** The Tag Value */
-    value: string;
-    delete: () => Promise<boolean>;
-    save: (newData: Tag|TagInsert) => Promise<Tag>;
 }
 
 /** 
@@ -46,14 +59,19 @@ export interface Tag {
 interface TagCriteria {
     /** Filter by Tag Id */
     tagId?: number;
+
     /** Filter by partial Tag */
     tag?: string;
-    /** Filter by exact Tag (isn't working in the current version [2.3.5]) */
-    exactTag?: string;
+
+    /** Filter by exact Tag (isn't working in the current version [2.3.6]) */
+    // exactTag?: string;
+
     /** Filter by isSystem flag */
     isSystem?: 0 | 1;
+
     /** Filter by isRequired flag */
     isRequired?: 0 | 1;
+
     /** Set to 1 to show only results that have options set */
     haveOptions?: 0 | 1;
 }
