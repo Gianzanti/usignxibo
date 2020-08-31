@@ -43,7 +43,7 @@ const tags = await xibo.tags.list({tagId: 5})
 To insert a tag
 
 ```ts
-const inserted = await xibo.tags.insert(\{
+const inserted = await xibo.tags.insert({
     name: 'TagName',
     isRequired: 0,
     options: ['some', 'options', 'comma', 'separated']
@@ -53,7 +53,7 @@ const inserted = await xibo.tags.insert(\{
 To update a tag
 
 ```ts
-const updated = await inserted.save(\{
+const updated = await inserted.save({
     ...inserted,
     name: 'TagNameChanged'
 })
