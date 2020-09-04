@@ -59,13 +59,13 @@ export interface DisplayGroup {
     /** Function to update current entity */
     save: (newData: DisplayGroup|DisplayGroupInsert) => Promise<DisplayGroup>;
 
-    addDisplays: (displayIDs: number[]) => Promise<boolean>;
+    addDisplays: (displayID: number) => Promise<boolean>;
 
-    removeDisplays: (displayIDs: number[]) => Promise<boolean>;
+    removeDisplays: (displayID: number) => Promise<boolean>;
 
-    addDisplayGroups: (displayGroupIDs: number[]) => Promise<boolean>;
+    addDisplayGroups: (displayGroupID: number) => Promise<boolean>;
 
-    removeDisplayGroups: (displayGroupIDs: number[]) => Promise<boolean>;
+    removeDisplayGroups: (displayGroupID: number) => Promise<boolean>;
 }
 
 interface DisplayGroupCriteria {
@@ -91,6 +91,14 @@ interface DisplayGroupCriteria {
     forSchedule?: number;
 }
 
+interface DisplayArray {
+    'displayId[]': string;
+}
+
+interface DisplayGroupArray {
+    'displayGroupId[]': string;
+}
+
 export class DisplayGroups extends Entity<DisplayGroup, DisplayGroupCriteria, DisplayGroupInsert> {
     public constructor(server: Xibo) {
         super({
@@ -112,9 +120,10 @@ export class DisplayGroups extends Entity<DisplayGroup, DisplayGroupCriteria, Di
             
             save: (newData: DisplayGroup|DisplayGroupInsert) => super.update(data.displayGroupId, newData),
             
-            addDisplays: async (displayIDs: number[]) => {
+            addDisplays: async (displayID: number) => {
                 const ep = `${this.endpoint}/${data.displayGroupId}/display/assign`
-                const resp = await this.server.api.post<CMSResponse<DisplayGroup>, number[]>(ep, displayIDs)
+                const arrDisplays: DisplayArray = {'displayId[]': displayID.toString()}
+                const resp = await this.server.api.post<CMSResponse<DisplayGroup>, DisplayArray>(ep, arrDisplays)
                 if (resp.data.success) {
                     console.log('addDisplays:', resp.data.message)
                     return true
@@ -122,9 +131,10 @@ export class DisplayGroups extends Entity<DisplayGroup, DisplayGroupCriteria, Di
                 this.dealWithError(resp)
             },
 
-            removeDisplays: async (displayIDs: number[]) => {
+            removeDisplays: async (displayID: number) => {
                 const ep = `${this.endpoint}/${data.displayGroupId}/display/unassign`
-                const resp = await this.server.api.post<CMSResponse<DisplayGroup>, number[]>(ep, displayIDs)
+                const arrDisplays: DisplayArray = {'displayId[]': displayID.toString()}
+                const resp = await this.server.api.post<CMSResponse<DisplayGroup>, DisplayArray>(ep, arrDisplays)
                 if (resp.data.success) {
                     console.log('removeDisplays:', resp.data.message)
                     return true
@@ -132,9 +142,10 @@ export class DisplayGroups extends Entity<DisplayGroup, DisplayGroupCriteria, Di
                 this.dealWithError(resp)
             },
 
-            addDisplayGroups: async (displayGroupIDs: number[]) => {
+            addDisplayGroups: async (displayGroupID: number) => {
                 const ep = `${this.endpoint}/${data.displayGroupId}/displayGroup/assign`
-                const resp = await this.server.api.post<CMSResponse<DisplayGroup>, number[]>(ep, displayGroupIDs)
+                const arrDisplays: DisplayGroupArray = {'displayGroupId[]': displayGroupID.toString()}
+                const resp = await this.server.api.post<CMSResponse<DisplayGroup>, DisplayGroupArray>(ep, arrDisplays)
                 if (resp.data.success) {
                     console.log('addDisplayGroups:', resp.data.message)
                     return true
@@ -142,9 +153,10 @@ export class DisplayGroups extends Entity<DisplayGroup, DisplayGroupCriteria, Di
                 this.dealWithError(resp)
             },
 
-            removeDisplayGroups: async (displayGroupIDs: number[]) => {
+            removeDisplayGroups: async (displayGroupID: number) => {
                 const ep = `${this.endpoint}/${data.displayGroupId}/displayGroup/unassign`
-                const resp = await this.server.api.post<CMSResponse<DisplayGroup>, number[]>(ep, displayGroupIDs)
+                const arrDisplays: DisplayGroupArray = {'displayGroupId[]': displayGroupID.toString()}
+                const resp = await this.server.api.post<CMSResponse<DisplayGroup>, DisplayGroupArray>(ep, arrDisplays)
                 if (resp.data.success) {
                     console.log('removeDisplayGroups:', resp.data.message)
                     return true
